@@ -10,7 +10,14 @@ class SunEditor extends Component {
     this.txtArea = createRef();
   }
   componentDidMount() {
-    const { lang, setOptions = {}, width = "100%", height, defaultValue, name } = this.props;
+    const {
+      lang,
+      setOptions = {},
+      width = "100%",
+      height,
+      defaultValue,
+      name,
+    } = this.props;
 
     setOptions.lang = setOptions.lang || getLanguage(lang);
     setOptions.plugins = getPlugins(setOptions);
@@ -91,7 +98,9 @@ class SunEditor extends Component {
     if (onAudioUploadBefore)
       this.editor.onAudioUploadBefore = (files, info, _, uploadHandler) =>
         onAudioUploadBefore(files, info, uploadHandler);
-    if (onDrop) this.editor.onDrop = (e, cleanData, maxCharCount) => onDrop(e, cleanData, maxCharCount);
+    if (onDrop)
+      this.editor.onDrop = (e, cleanData, maxCharCount) =>
+        onDrop(e, cleanData, maxCharCount);
     if (onPaste)
       this.editor.onPaste = (e, cleanData, maxCharCount) =>
         onPaste(e, cleanData, maxCharCount);
@@ -138,7 +147,6 @@ class SunEditor extends Component {
       this.editor.onAudioUploadError = (errorMessage, result) =>
         onAudioUploadError(errorMessage, result);
     if (placeholder) setOptions.placeholder = placeholder;
-    this.editor.setOptions(setOptions);
 
     this.editor.onload = (_, reload) => {
       if (reload === false) {

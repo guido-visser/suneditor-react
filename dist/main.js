@@ -82,7 +82,7 @@ module.exports =
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 48);
+/******/ 	return __webpack_require__(__webpack_require__.s = 49);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -99,7 +99,7 @@ module.exports =
 if (false) { var throwOnDirectAccess, ReactIs; } else {
   // By explicitly using `prop-types` you are opting into new production behavior.
   // http://fb.me/prop-types-in-prod
-  module.exports = __webpack_require__(46)();
+  module.exports = __webpack_require__(47)();
 }
 
 
@@ -233,7 +233,6 @@ if (false) { var throwOnDirectAccess, ReactIs; } else {
 
             this.context.dialog.modalArea.style.display = 'block';
             this.context.dialog.back.style.display = 'block';
-            // this.context.dialog.modal.style.display = 'flex'; @v3
             this.context.dialog.modal.style.display = 'block';
             this.modalForm.style.display = 'block';
 
@@ -406,6 +405,15 @@ if (false) { var throwOnDirectAccess, ReactIs; } else {
         name: 'fileManager',
         _xmlHttp: null,
 
+        _checkMediaComponent: function (tag) {
+            if (/IMG/i.test(tag)) {
+                return !/FIGURE/i.test(tag.parentElement.nodeName) || !/FIGURE/i.test(tag.parentElement.parentElement.nodeName);
+            } else if (/VIDEO/i.test(tag)) {
+                return !/FIGURE/i.test(tag.parentElement.nodeName);
+            }
+            return true;
+        },
+
         /**
          * @description Upload the file to the server.
          * @param {String} uploadUrl Upload server url
@@ -473,9 +481,10 @@ if (false) { var throwOnDirectAccess, ReactIs; } else {
                 tags = tags.concat([].slice.call(this.context.element.wysiwyg.getElementsByTagName(tagNames[i])));
             }
 
+            const fileManagerPlugin = this.plugins.fileManager;
             const context = this.context[pluginName];
             const infoList = context._infoList;
-            const setFileInfo = this.plugins.fileManager.setInfo.bind(this);
+            const setFileInfo = fileManagerPlugin.setInfo.bind(this);
 
             if (tags.length === infoList.length) {
                 // reset
@@ -509,7 +518,7 @@ if (false) { var throwOnDirectAccess, ReactIs; } else {
             
             for (let i = 0, len = tags.length, tag; i < len; i++) {
                 tag = tags[i];
-                if (!this.util.getParentElement(tag, this.util.isMediaComponent) || !/FIGURE/i.test(tag.parentElement.nodeName)) {
+                if (!this.util.getParentElement(tag, this.util.isMediaComponent) || !fileManagerPlugin._checkMediaComponent(tag)) {
                     currentTags.push(context._infoIndex);
                     modifyHandler(tag);
                 } else if (!tag.getAttribute('data-index') || infoIndex.indexOf(tag.getAttribute('data-index') * 1) < 0) {
@@ -1098,351 +1107,6 @@ if (false) { var throwOnDirectAccess, ReactIs; } else {
 
 /***/ }),
 /* 6 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/*
- * wysiwyg web editor
- *
- * suneditor.js
- * Copyright 2017 JiHong Lee.
- * MIT license.
- */
-
-
-/* harmony default export */ __webpack_exports__["a"] = ({
-    name: 'anchor',
-    add: function (core) {
-        core.context.anchor = {
-            caller: {},
-            forms: this.setDialogForm(core),
-            host: core._w.location.origin + core._w.location.pathname
-        };
-    },
-
-    /** dialog */
-    setDialogForm: function (core) {
-        const lang = core.lang;
-        const relList = core.options.linkRel;
-        const defaultRel = (core.options.linkRelDefault.default || '').split(' ');
-        const icons = core.icons;
-        const forms = core.util.createElement('DIV');
-
-        let html = '<div class="se-dialog-body">' +
-            '<div class="se-dialog-form">' +
-                '<label>' + lang.dialogBox.linkBox.url + '</label>' +
-                '<div class="se-dialog-form-files">' +
-                    '<input class="se-input-form se-input-url" type="text" placeholder="' + (core.options.protocol || '') + '" />' +
-                    '<button type="button" class="se-btn se-dialog-files-edge-button _se_bookmark_button" title="' + lang.dialogBox.linkBox.bookmark + '">' + icons.bookmark + '</button>' +
-                '</div>' +
-                '<div class="se-anchor-preview-form">' +
-                    '<span class="se-svg se-anchor-preview-icon _se_anchor_bookmark_icon">' + icons.bookmark + '</span>' +
-                    '<span class="se-svg se-anchor-preview-icon _se_anchor_download_icon">' + icons.download + '</span>' +
-                    '<pre class="se-link-preview"></pre>' +
-                '</div>' +
-            '</div>' +
-            '<div class="se-dialog-form">' +
-                '<label>' + lang.dialogBox.linkBox.text + '</label><input class="se-input-form _se_anchor_text" type="text" />' +
-            '</div>' +
-            '<div class="se-dialog-form-footer">' +
-                '<label><input type="checkbox" class="se-dialog-btn-check _se_anchor_check" />&nbsp;' + lang.dialogBox.linkBox.newWindowCheck + '</label>' +
-                '<label><input type="checkbox" class="se-dialog-btn-check _se_anchor_download" />&nbsp;' + lang.dialogBox.linkBox.downloadLinkCheck + '</label>';
-            if (relList.length > 0) {
-                html += '<div class="se-anchor-rel"><button type="button" class="se-btn se-btn-select se-anchor-rel-btn">&lt;rel&gt;</button>' +
-                    '<div class="se-anchor-rel-wrapper"><pre class="se-link-preview se-anchor-rel-preview"></pre></div>' +
-                    '<div class="se-list-layer">' +
-                        '<div class="se-list-inner">' +
-                            '<ul class="se-list-basic se-list-checked">';
-                for (let i = 0, len = relList.length, rel; i < len; i++) {
-                    rel = relList[i];
-                    html += '<li><button type="button" class="se-btn-list' + (defaultRel.indexOf(rel) > -1 ? ' se-checked' : '') + '" data-command="' + rel + '" title="' + rel + '"><span class="se-svg">' + icons.checked + '</span>' + rel + '</button></li>';
-                }
-                html += '</ul></div></div></div>';
-            }
-
-        html += '</div></div>';
-
-        forms.innerHTML = html;
-        return forms;
-    },
-
-    initEvent: function (pluginName, forms) {
-        const anchorPlugin = this.plugins.anchor;
-        const context = this.context.anchor.caller[pluginName] = {
-            modal: forms,
-            urlInput: null,
-            linkDefaultRel: this.options.linkRelDefault,
-            defaultRel: this.options.linkRelDefault.default || '',
-            currentRel: [],
-            linkAnchor: null,
-            linkValue: ''
-        };
-
-        if (typeof context.linkDefaultRel.default === 'string') context.linkDefaultRel.default = context.linkDefaultRel.default.trim();
-        if (typeof context.linkDefaultRel.check_new_window === 'string') context.linkDefaultRel.check_new_window = context.linkDefaultRel.check_new_window.trim();
-        if (typeof context.linkDefaultRel.check_bookmark === 'string') context.linkDefaultRel.check_bookmark = context.linkDefaultRel.check_bookmark.trim();
-
-        context.urlInput = forms.querySelector('.se-input-url');
-        context.anchorText = forms.querySelector('._se_anchor_text');
-        context.newWindowCheck = forms.querySelector('._se_anchor_check');
-        context.downloadCheck = forms.querySelector('._se_anchor_download');
-        context.download = forms.querySelector('._se_anchor_download_icon');
-        context.preview = forms.querySelector('.se-link-preview');
-        context.bookmark = forms.querySelector('._se_anchor_bookmark_icon');
-        context.bookmarkButton = forms.querySelector('._se_bookmark_button');
-        
-        /** rel */
-        if (this.options.linkRel.length > 0) {
-            context.relButton = forms.querySelector('.se-anchor-rel-btn');
-            context.relList = forms.querySelector('.se-list-layer');
-            context.relPreview = forms.querySelector('.se-anchor-rel-preview');
-            context.relButton.addEventListener('click', anchorPlugin.onClick_relButton.bind(this, context));
-            context.relList.addEventListener('click', anchorPlugin.onClick_relList.bind(this, context));
-        }
-
-        context.newWindowCheck.addEventListener('change', anchorPlugin.onChange_newWindowCheck.bind(this, context));
-        context.downloadCheck.addEventListener('change', anchorPlugin.onChange_downloadCheck.bind(this, context));
-        context.urlInput.addEventListener('input', anchorPlugin.setLinkPreview.bind(this, context, this.options.linkProtocol));
-        context.bookmarkButton.addEventListener('click', anchorPlugin.onClick_bookmarkButton.bind(this, context));
-    },
-
-    on: function (contextAnchor, update) {
-        if (!update) {
-            this.plugins.anchor.init.call(this, contextAnchor);
-            contextAnchor.anchorText.value = this.getSelection().toString();
-        } else if (contextAnchor.linkAnchor) {
-            this.context.dialog.updateModal = true;
-            contextAnchor.linkValue = contextAnchor.preview.textContent = contextAnchor.urlInput.value = (contextAnchor.linkAnchor.id ? '#' + contextAnchor.linkAnchor.id : contextAnchor.linkAnchor.href);
-            contextAnchor.anchorText.value = contextAnchor.linkAnchor.getAttribute('alt') || contextAnchor.linkAnchor.textContent;
-            contextAnchor.newWindowCheck.checked = (/_blank/i.test(contextAnchor.linkAnchor.target) ? true : false);
-            contextAnchor.downloadCheck.checked = contextAnchor.linkAnchor.download;
-        }
-
-        this.plugins.anchor.setRel.call(this, contextAnchor, (update && contextAnchor.linkAnchor) ? contextAnchor.linkAnchor.rel : contextAnchor.defaultRel);
-        this.plugins.anchor.setLinkPreview.call(this, contextAnchor, this.options.linkProtocol, contextAnchor.linkValue);
-    },
-
-    _closeRelMenu: null,
-    toggleRelList: function (contextAnchor, show) {
-        if (!show) {
-            if (this.plugins.anchor._closeRelMenu) this.plugins.anchor._closeRelMenu();
-        } else {
-            const target = contextAnchor.relButton;
-            const relList = contextAnchor.relList;
-            this.util.addClass(target, 'active');
-            relList.style.visibility = 'hidden';
-            relList.style.display = 'block';
-            if (!this.options.rtl) relList.style.left = (target.offsetLeft + target.offsetWidth + 1) + 'px';
-            else relList.style.left = (target.offsetLeft - relList.offsetWidth - 1) + 'px';
-            relList.style.top = (target.offsetTop + (target.offsetHeight / 2) - (relList.offsetHeight / 2)) + 'px';
-            relList.style.visibility = '';
-
-            this.plugins.anchor._closeRelMenu = function (context, target, e) {
-                if (e && (context.relButton.contains(e.target) || context.relList.contains(e.target))) return;
-                this.util.removeClass(target, 'active');
-                context.relList.style.display = 'none';
-                this.modalForm.removeEventListener('click', this.plugins.anchor._closeRelMenu);
-                this.plugins.anchor._closeRelMenu = null;
-            }.bind(this, contextAnchor, target);
-    
-            this.modalForm.addEventListener('click', this.plugins.anchor._closeRelMenu);
-        }
-    },
-
-    onClick_relButton: function (contextAnchor, e) {
-        this.plugins.anchor.toggleRelList.call(this, contextAnchor, !this.util.hasClass(e.target, 'active'));
-    },
-
-    onClick_relList: function (contextAnchor, e) {
-        const target = e.target;
-        const cmd = target.getAttribute('data-command');
-        if (!cmd) return;
-        
-        const current = contextAnchor.currentRel;
-        const checked = this.util.toggleClass(target, 'se-checked');
-        const index = current.indexOf(cmd);
-        if (checked) {
-            if (index === -1) current.push(cmd);
-        } else {
-            if (index > -1) current.splice(index, 1);
-        }
-
-        contextAnchor.relPreview.title = contextAnchor.relPreview.textContent = current.join(' ');
-    },
-
-    setRel: function (contextAnchor, relAttr) {
-        const relListEl = contextAnchor.relList;
-        const rels = contextAnchor.currentRel = !relAttr ? [] : relAttr.split(' ');
-        if (!relListEl) return;
-
-        const checkedRel = relListEl.querySelectorAll('button');
-        for (let i = 0, len = checkedRel.length, cmd; i < len; i++) {
-            cmd = checkedRel[i].getAttribute('data-command');
-            if (rels.indexOf(cmd) > -1) {
-                this.util.addClass(checkedRel[i], 'se-checked');
-            } else {
-                this.util.removeClass(checkedRel[i], 'se-checked');
-            }
-        }
-
-        contextAnchor.relPreview.title = contextAnchor.relPreview.textContent = rels.join(' ');
-    },
-
-    setLinkPreview: function (context, protocol, e) {
-        const preview = context.preview;
-        const value = typeof e === 'string' ? e : e.target.value.trim();
-        const reservedProtocol  = /^(mailto\:|https*\:\/\/)/.test(value);
-        const sameProtocol = !protocol ? false : this._w.RegExp('^' + value.substr(0, protocol.length)).test(protocol);
-        context.linkValue = preview.textContent = !value ? '' : (protocol && !reservedProtocol && !sameProtocol) ? protocol + value : reservedProtocol ? value : /^www\./.test(value) ? 'http://' + value : this.context.anchor.host + value;
-
-        if (value.indexOf('#') === 0) {
-            context.bookmark.style.display = 'block';
-            this.util.addClass(context.bookmarkButton, 'active');
-        } else {
-            context.bookmark.style.display = 'none';
-            this.util.removeClass(context.bookmarkButton, 'active');
-        }
-
-        if (value.indexOf('#') === -1 && context.downloadCheck.checked) {
-            context.download.style.display = 'block';
-        } else {
-            context.download.style.display = 'none';
-        }
-    },
-
-    updateAnchor: function (anchor, url, alt, contextAnchor, notText) {
-        // bookmark
-        if (/^\#/.test(url)) {
-            anchor.id = url.substr(1);
-        } else {
-            anchor.removeAttribute('id');
-        }
-
-        // download
-        if (!/^\#/.test(url) && contextAnchor.downloadCheck.checked) {
-            anchor.setAttribute('download', alt || url);
-        } else {
-            anchor.removeAttribute('download');
-        }
-
-        // new window
-        if (contextAnchor.newWindowCheck.checked) anchor.target = '_blank';
-        else anchor.removeAttribute('target');
-        
-        // rel
-        const rel = contextAnchor.currentRel.join(' ');
-        if (!rel) anchor.removeAttribute('rel');
-        else anchor.rel = rel;
-
-        // est url, alt
-        anchor.href = url;
-        anchor.setAttribute('alt', alt);
-        anchor.textContent = notText ? '' : alt;
-    },
-
-    createAnchor: function (contextAnchor, notText) {
-        if (contextAnchor.linkValue.length === 0) return null;
-        
-        const url = contextAnchor.linkValue;
-        const anchor = contextAnchor.anchorText;
-        const anchorText = anchor.value.length === 0 ? url : anchor.value;
-
-        const oA = contextAnchor.linkAnchor || this.util.createElement('A');
-        this.plugins.anchor.updateAnchor(oA, url, anchorText, contextAnchor, notText);
-
-        contextAnchor.linkValue = contextAnchor.preview.textContent = contextAnchor.urlInput.value = contextAnchor.anchorText.value = '';
-
-        return oA;
-    },
-
-    onClick_bookmarkButton: function (contextAnchor) {
-        let url = contextAnchor.urlInput.value;
-        if (/^\#/.test(url)) {
-            url = url.substr(1);
-            contextAnchor.bookmark.style.display = 'none';
-            this.util.removeClass(contextAnchor.bookmarkButton, 'active');
-        } else {
-            url = '#' + url;
-            contextAnchor.bookmark.style.display = 'block';
-            this.util.addClass(contextAnchor.bookmarkButton, 'active');
-            contextAnchor.downloadCheck.checked = false;
-            contextAnchor.download.style.display = 'none';
-        }
-
-        contextAnchor.linkValue = contextAnchor.preview.textContent = contextAnchor.urlInput.value = url;
-        contextAnchor.urlInput.focus();
-    },
-
-    onChange_newWindowCheck: function (contextAnchor, e) {
-        if (typeof contextAnchor.linkDefaultRel.check_new_window !== 'string') return;
-        if (e.target.checked) {
-            this.plugins.anchor.setRel.call(this, contextAnchor, this.plugins.anchor._relMerge.call(this, contextAnchor, contextAnchor.linkDefaultRel.check_new_window));
-        } else {
-            this.plugins.anchor.setRel.call(this, contextAnchor, this.plugins.anchor._relDelete.call(this, contextAnchor, contextAnchor.linkDefaultRel.check_new_window));
-        }
-    },
-
-    onChange_downloadCheck: function (contextAnchor, e) {
-        if (e.target.checked) {
-            contextAnchor.download.style.display = 'block';
-            contextAnchor.bookmark.style.display = 'none';
-            this.util.removeClass(contextAnchor.bookmarkButton, 'active');
-            contextAnchor.linkValue = contextAnchor.preview.textContent = contextAnchor.urlInput.value = contextAnchor.urlInput.value.replace(/^\#+/, '');
-            if (typeof contextAnchor.linkDefaultRel.check_bookmark === 'string') {
-                this.plugins.anchor.setRel.call(this, contextAnchor, this.plugins.anchor._relMerge.call(this, contextAnchor, contextAnchor.linkDefaultRel.check_bookmark));
-            }
-        } else {
-            contextAnchor.download.style.display = 'none';
-            if (typeof contextAnchor.linkDefaultRel.check_bookmark === 'string') {
-                this.plugins.anchor.setRel.call(this, contextAnchor, this.plugins.anchor._relDelete.call(this, contextAnchor, contextAnchor.linkDefaultRel.check_bookmark));
-            }
-        }
-    },
-
-    _relMerge: function (contextAnchor, relAttr) {
-        const current = contextAnchor.currentRel;
-        if (!relAttr) return current.join(' ');
-        
-        if (/^only\:/.test(relAttr)) {
-            relAttr = relAttr.replace(/^only\:/, '').trim();
-            contextAnchor.currentRel = relAttr.split(' ');
-            return relAttr;
-        }
-
-        const rels = relAttr.split(' ');
-        for (let i = 0, len = rels.length, index; i < len; i++) {
-            index = current.indexOf(rels[i]);
-            if (index === -1) current.push(rels[i]);
-        }
-
-        return current.join(' ');
-    },
-
-    _relDelete: function (contextAnchor, relAttr) {
-        if (!relAttr) return contextAnchor.currentRel.join(' ');
-        if (/^only\:/.test(relAttr)) relAttr = relAttr.replace(/^only\:/, '').trim();
-
-        const rels = contextAnchor.currentRel.join(' ').replace(this._w.RegExp(relAttr + '\\s*'), '');
-        contextAnchor.currentRel = rels.split(' ');
-        return rels;
-    },
-
-    init: function (contextAnchor) {
-        contextAnchor.linkAnchor = null;
-        contextAnchor.linkValue = contextAnchor.preview.textContent = contextAnchor.urlInput.value = '';
-        contextAnchor.anchorText.value = '';
-        contextAnchor.newWindowCheck.checked = false;
-        contextAnchor.downloadCheck.checked = false;
-        this.plugins.anchor.setRel.call(this, contextAnchor, contextAnchor.defaultRel);
-        if (contextAnchor.relList) {
-            this.plugins.anchor.toggleRelList.call(this, contextAnchor, false);
-        }
-    }
-});
-
-
-/***/ }),
-/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1917,7 +1581,6 @@ if (false) { var throwOnDirectAccess, ReactIs; } else {
                 }
             }
 
-            this.util.setDisabledButtons(true, this.resizingDisabledButtons);
             resizeContainer.style.display = 'block';
 
             const addOffset = {left: 0, top: 50};
@@ -1928,6 +1591,7 @@ if (false) { var throwOnDirectAccess, ReactIs; } else {
 
             this.setControllerPosition(contextResizing.resizeButton, resizeContainer, 'bottom', addOffset);
             this.controllersOn(resizeContainer, contextResizing.resizeButton, this.util.setDisabledButtons.bind(this, false, this.resizingDisabledButtons), targetElement, plugin);
+            this.util.setDisabledButtons(true, this.resizingDisabledButtons);
     
             contextResizing._resize_w = w;
             contextResizing._resize_h = h;
@@ -2311,6 +1975,8 @@ if (false) { var throwOnDirectAccess, ReactIs; } else {
     
             const pluginName = this.context.resizing._resize_plugin;
             this.plugins[pluginName].setSize.call(this, w, h, false, direction);
+            if (isVertical) this.plugins.resizing.setTransformSize.call(this, this.context[this.context.resizing._resize_plugin]._element, w, h);
+
             this.selectComponent(this.context[pluginName]._element, pluginName);
         }
     };
@@ -2337,6 +2003,588 @@ if (false) { var throwOnDirectAccess, ReactIs; } else {
 }));
 
 /***/ }),
+/* 7 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+
+// CONCATENATED MODULE: ./node_modules/suneditor/src/plugins/modules/_selectMenu.js
+/*
+ * wysiwyg web editor
+ *
+ * suneditor.js
+ * Copyright 2018 JiHong Lee.
+ * MIT license.
+ */
+
+
+/* harmony default export */ var _selectMenu = ({
+    name: 'selectMenu',
+    add: function (core) {
+        core.context.selectMenu = {
+            caller: {},
+            callerContext: null
+        };
+    },
+
+    setForm: function () {
+        return '<div class="se-select-list"></div>';
+    },
+
+    createList: function (listContext, items, html) {
+        listContext.form.innerHTML = '<ul>' + html + '</ul>';
+        listContext.items = items;
+        listContext.menus = listContext.form.querySelectorAll('li');
+    },
+
+    initEvent: function (pluginName, forms) {
+        const form = forms.querySelector('.se-select-list');
+        const context = this.context.selectMenu.caller[pluginName] = {
+            form: form,
+            items: [],
+            menus: [],
+            index: -1,
+            item: null,
+            clickMethod: null,
+            callerName: pluginName
+        };
+
+        form.addEventListener('mousedown', this.plugins.selectMenu.onMousedown_list);
+        form.addEventListener('mousemove', this.plugins.selectMenu.onMouseMove_list.bind(this, context));
+        form.addEventListener('click', this.plugins.selectMenu.onClick_list.bind(this, context));
+    },
+
+    onMousedown_list: function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    },
+
+    onMouseMove_list: function (context, e) {
+        this.util.addClass(context.form, '__se_select-menu-mouse-move');
+        const index = e.target.getAttribute('data-index');
+        if (!index) return;
+        context.index = index * 1;
+    },
+
+    onClick_list: function (context, e) {
+        const index = e.target.getAttribute('data-index');
+        if (!index) return;
+        context.clickMethod.call(this, context.items[index]);
+    },
+
+    moveItem: function (listContext, num) {
+        this.util.removeClass(listContext.form, '__se_select-menu-mouse-move');
+        num = listContext.index + num;
+        const menus = listContext.menus;
+        const len = menus.length;
+        const selectIndex = listContext.index = num >= len ? 0 : num < 0 ? len - 1 : num;
+        
+        for (let i = 0; i < len; i++) {
+            if (i === selectIndex) {
+                this.util.addClass(menus[i], 'active');
+            } else {
+                this.util.removeClass(menus[i], 'active');
+            }
+        }
+
+        listContext.item = listContext.items[selectIndex];
+    },
+
+    getItem: function (listContext, index) {
+        index = (!index || index < 0) ? listContext.index : index;
+        return listContext.items[index];
+    },
+
+    on: function (callerName, clickMethod) {
+        const listContext = this.context.selectMenu.caller[callerName];
+        this.context.selectMenu.callerContext = listContext;
+        listContext.clickMethod = clickMethod;
+        listContext.callerName = callerName;
+    },
+
+    open: function (listContext, positionHandler) {
+        const form = listContext.form;
+        form.style.visibility = 'hidden';
+        form.style.display = 'block';
+        positionHandler(form);
+        form.style.visibility = '';
+    },
+
+    close: function (listContext) {
+        listContext.form.style.display = 'none';
+        listContext.items = [];
+        listContext.menus = [];
+        listContext.index = -1;
+        listContext.item = null;
+    },
+
+    init: function (listContext) {
+        if (!listContext) return;
+        listContext.items = [];
+        listContext.menus = [];
+        listContext.index = -1;
+        listContext.item = null;
+        listContext.callerName = '';
+        this.context.selectMenu.callerContext = null;
+    }
+});
+// CONCATENATED MODULE: ./node_modules/suneditor/src/plugins/modules/_anchor.js
+/*
+ * wysiwyg web editor
+ *
+ * suneditor.js
+ * Copyright 2017 JiHong Lee.
+ * MIT license.
+ */
+
+
+
+
+/* harmony default export */ var _anchor = __webpack_exports__["a"] = ({
+    name: 'anchor',
+    add: function (core) {
+        core.addModule([_selectMenu]);
+        
+        core.context.anchor = {
+            caller: {},
+            forms: this.setDialogForm(core),
+            host: (core._w.location.origin + core._w.location.pathname).replace(/\/$/, ''),
+            callerContext: null
+        };
+    },
+
+    /** dialog */
+    setDialogForm: function (core) {
+        const lang = core.lang;
+        const relList = core.options.linkRel;
+        const defaultRel = (core.options.linkRelDefault.default || '').split(' ');
+        const icons = core.icons;
+        const forms = core.util.createElement('DIV');
+
+        let html = '<div class="se-dialog-body">' +
+            '<div class="se-dialog-form">' +
+                '<label>' + lang.dialogBox.linkBox.url + '</label>' +
+                '<div class="se-dialog-form-files">' +
+                    '<input class="se-input-form se-input-url" type="text" placeholder="' + (core.options.protocol || '') + '" />' +
+                    '<button type="button" class="se-btn se-dialog-files-edge-button _se_bookmark_button" title="' + lang.dialogBox.linkBox.bookmark + '">' + icons.bookmark + '</button>' +
+                    core.plugins.selectMenu.setForm() +
+                '</div>' +
+                '<div class="se-anchor-preview-form">' +
+                    '<span class="se-svg se-anchor-preview-icon _se_anchor_bookmark_icon">' + icons.bookmark + '</span>' +
+                    '<span class="se-svg se-anchor-preview-icon _se_anchor_download_icon">' + icons.download + '</span>' +
+                    '<pre class="se-link-preview"></pre>' +
+                '</div>' +
+            '</div>' +
+            '<div class="se-dialog-form">' +
+                '<label>' + lang.dialogBox.linkBox.text + '</label><input class="se-input-form _se_anchor_text" type="text" />' +
+            '</div>' +
+            '<div class="se-dialog-form-footer">' +
+                '<label><input type="checkbox" class="se-dialog-btn-check _se_anchor_check" />&nbsp;' + lang.dialogBox.linkBox.newWindowCheck + '</label>' +
+                '<label><input type="checkbox" class="se-dialog-btn-check _se_anchor_download" />&nbsp;' + lang.dialogBox.linkBox.downloadLinkCheck + '</label>';
+            if (relList.length > 0) {
+                html += '<div class="se-anchor-rel"><button type="button" class="se-btn se-btn-select se-anchor-rel-btn">&lt;rel&gt;</button>' +
+                    '<div class="se-anchor-rel-wrapper"><pre class="se-link-preview se-anchor-rel-preview"></pre></div>' +
+                    '<div class="se-list-layer">' +
+                        '<div class="se-list-inner">' +
+                            '<ul class="se-list-basic se-list-checked">';
+                for (let i = 0, len = relList.length, rel; i < len; i++) {
+                    rel = relList[i];
+                    html += '<li><button type="button" class="se-btn-list' + (defaultRel.indexOf(rel) > -1 ? ' se-checked' : '') + '" data-command="' + rel + '" title="' + rel + '"><span class="se-svg">' + icons.checked + '</span>' + rel + '</button></li>';
+                }
+                html += '</ul></div></div></div>';
+            }
+
+        html += '</div></div>';
+
+        forms.innerHTML = html;
+        return forms;
+    },
+
+    initEvent: function (pluginName, forms) {
+        const anchorPlugin = this.plugins.anchor;
+        const context = this.context.anchor.caller[pluginName] = {
+            modal: forms,
+            urlInput: null,
+            linkDefaultRel: this.options.linkRelDefault,
+            defaultRel: this.options.linkRelDefault.default || '',
+            currentRel: [],
+            linkAnchor: null,
+            linkValue: '',
+            _change: false,
+            callerName: pluginName
+        };
+
+        if (typeof context.linkDefaultRel.default === 'string') context.linkDefaultRel.default = context.linkDefaultRel.default.trim();
+        if (typeof context.linkDefaultRel.check_new_window === 'string') context.linkDefaultRel.check_new_window = context.linkDefaultRel.check_new_window.trim();
+        if (typeof context.linkDefaultRel.check_bookmark === 'string') context.linkDefaultRel.check_bookmark = context.linkDefaultRel.check_bookmark.trim();
+
+        context.urlInput = forms.querySelector('.se-input-url');
+        context.anchorText = forms.querySelector('._se_anchor_text');
+        context.newWindowCheck = forms.querySelector('._se_anchor_check');
+        context.downloadCheck = forms.querySelector('._se_anchor_download');
+        context.download = forms.querySelector('._se_anchor_download_icon');
+        context.preview = forms.querySelector('.se-link-preview');
+        context.bookmark = forms.querySelector('._se_anchor_bookmark_icon');
+        context.bookmarkButton = forms.querySelector('._se_bookmark_button');
+
+        this.plugins.selectMenu.initEvent.call(this, pluginName, forms);
+        const listContext = this.context.selectMenu.caller[pluginName];
+        
+        /** rel */
+        if (this.options.linkRel.length > 0) {
+            context.relButton = forms.querySelector('.se-anchor-rel-btn');
+            context.relList = forms.querySelector('.se-list-layer');
+            context.relPreview = forms.querySelector('.se-anchor-rel-preview');
+            context.relButton.addEventListener('click', anchorPlugin.onClick_relButton.bind(this, context));
+            context.relList.addEventListener('click', anchorPlugin.onClick_relList.bind(this, context));
+        }
+
+        context.newWindowCheck.addEventListener('change', anchorPlugin.onChange_newWindowCheck.bind(this, context));
+        context.downloadCheck.addEventListener('change', anchorPlugin.onChange_downloadCheck.bind(this, context));
+        context.anchorText.addEventListener('input', anchorPlugin.onChangeAnchorText.bind(this, context));
+        context.urlInput.addEventListener('input', anchorPlugin.onChangeUrlInput.bind(this, context));
+        context.urlInput.addEventListener('keydown', anchorPlugin.onKeyDownUrlInput.bind(this, listContext));
+        context.urlInput.addEventListener('focus', anchorPlugin.onFocusUrlInput.bind(this, context, listContext));
+        context.urlInput.addEventListener('blur', anchorPlugin.onBlurUrlInput.bind(this, listContext));
+        context.bookmarkButton.addEventListener('click', anchorPlugin.onClick_bookmarkButton.bind(this, context));
+    },
+
+    on: function (contextAnchor, update) {
+        if (!update) {
+            this.plugins.anchor.init.call(this, contextAnchor);
+            contextAnchor.anchorText.value = this.getSelection().toString();
+        } else if (contextAnchor.linkAnchor) {
+            this.context.dialog.updateModal = true;
+            const href = contextAnchor.linkAnchor.href;
+            contextAnchor.linkValue = contextAnchor.preview.textContent = contextAnchor.urlInput.value = /\#.+$/.test(href) ? href.substr(href.lastIndexOf('#')) : href;
+            contextAnchor.anchorText.value = contextAnchor.linkAnchor.textContent.trim() || contextAnchor.linkAnchor.getAttribute('alt');
+            contextAnchor.newWindowCheck.checked = (/_blank/i.test(contextAnchor.linkAnchor.target) ? true : false);
+            contextAnchor.downloadCheck.checked = contextAnchor.linkAnchor.download;
+        }
+
+        this.context.anchor.callerContext = contextAnchor;
+        this.plugins.anchor.setRel.call(this, contextAnchor, (update && contextAnchor.linkAnchor) ? contextAnchor.linkAnchor.rel : contextAnchor.defaultRel);
+        this.plugins.anchor.setLinkPreview.call(this, contextAnchor, contextAnchor.linkValue);
+        this.plugins.selectMenu.on.call(this, contextAnchor.callerName, this.plugins.anchor.setHeaderBookmark);
+    },
+
+    _closeRelMenu: null,
+    toggleRelList: function (contextAnchor, show) {
+        if (!show) {
+            if (this.plugins.anchor._closeRelMenu) this.plugins.anchor._closeRelMenu();
+        } else {
+            const target = contextAnchor.relButton;
+            const relList = contextAnchor.relList;
+            this.util.addClass(target, 'active');
+            relList.style.visibility = 'hidden';
+            relList.style.display = 'block';
+            if (!this.options.rtl) relList.style.left = (target.offsetLeft + target.offsetWidth + 1) + 'px';
+            else relList.style.left = (target.offsetLeft - relList.offsetWidth - 1) + 'px';
+            relList.style.top = (target.offsetTop + (target.offsetHeight / 2) - (relList.offsetHeight / 2)) + 'px';
+            relList.style.visibility = '';
+
+            this.plugins.anchor._closeRelMenu = function (context, target, e) {
+                if (e && (context.relButton.contains(e.target) || context.relList.contains(e.target))) return;
+                this.util.removeClass(target, 'active');
+                context.relList.style.display = 'none';
+                this.modalForm.removeEventListener('click', this.plugins.anchor._closeRelMenu);
+                this.plugins.anchor._closeRelMenu = null;
+            }.bind(this, contextAnchor, target);
+    
+            this.modalForm.addEventListener('click', this.plugins.anchor._closeRelMenu);
+        }
+    },
+
+    onClick_relButton: function (contextAnchor, e) {
+        this.plugins.anchor.toggleRelList.call(this, contextAnchor, !this.util.hasClass(e.target, 'active'));
+    },
+
+    onClick_relList: function (contextAnchor, e) {
+        const target = e.target;
+        const cmd = target.getAttribute('data-command');
+        if (!cmd) return;
+        
+        const current = contextAnchor.currentRel;
+        const checked = this.util.toggleClass(target, 'se-checked');
+        const index = current.indexOf(cmd);
+        if (checked) {
+            if (index === -1) current.push(cmd);
+        } else {
+            if (index > -1) current.splice(index, 1);
+        }
+
+        contextAnchor.relPreview.title = contextAnchor.relPreview.textContent = current.join(' ');
+    },
+
+    setRel: function (contextAnchor, relAttr) {
+        const relListEl = contextAnchor.relList;
+        const rels = contextAnchor.currentRel = !relAttr ? [] : relAttr.split(' ');
+        if (!relListEl) return;
+
+        const checkedRel = relListEl.querySelectorAll('button');
+        for (let i = 0, len = checkedRel.length, cmd; i < len; i++) {
+            cmd = checkedRel[i].getAttribute('data-command');
+            if (rels.indexOf(cmd) > -1) {
+                this.util.addClass(checkedRel[i], 'se-checked');
+            } else {
+                this.util.removeClass(checkedRel[i], 'se-checked');
+            }
+        }
+
+        contextAnchor.relPreview.title = contextAnchor.relPreview.textContent = rels.join(' ');
+    },
+
+    createHeaderList: function (contextAnchor, contextList, urlValue) {
+        const headers = this.util.getListChildren(this.context.element.wysiwyg, function(current) {
+            return /h[1-6]/i.test(current.nodeName);
+        });
+        if (headers.length === 0) return;
+
+        const valueRegExp = new this._w.RegExp('^' + urlValue.replace(/^#/, ''), 'i');
+        const list = [];
+        let html = '';
+        for(let i = 0, len = headers.length, h; i < len; i++) {
+            h = headers[i];
+            if (!valueRegExp.test(h.textContent)) continue;
+            list.push(h);
+            html += '<li class="se-select-item" data-index="' + i + '">' + h.textContent + '</li>';
+        }
+
+        if (list.length === 0) {
+            this.plugins.selectMenu.close.call(this, contextList);
+        } else {
+            this.plugins.selectMenu.createList(contextList, list, html);
+            this.plugins.selectMenu.open.call(this, contextList, this.plugins.anchor._setMenuListPosition.bind(this, contextAnchor));
+        }
+    },
+
+    _setMenuListPosition: function (contextAnchor, list) {
+        list.style.top = (contextAnchor.urlInput.offsetHeight + 1) + 'px';
+    },
+
+    onKeyDownUrlInput: function (contextList, e) {
+        const keyCode = e.keyCode;
+        switch (keyCode) {
+            case 38: // up
+                e.preventDefault();
+                e.stopPropagation();
+                this.plugins.selectMenu.moveItem.call(this, contextList, -1);
+                break;
+            case 40: // down
+                e.preventDefault();
+                e.stopPropagation();
+                this.plugins.selectMenu.moveItem.call(this, contextList, 1);
+                break;
+            case 13: // enter
+                if (contextList.index > -1) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.plugins.anchor.setHeaderBookmark.call(this, this.plugins.selectMenu.getItem(contextList, null));
+                }
+                break;
+        }
+    },
+
+    setHeaderBookmark: function (header) {
+        const contextAnchor = this.context.anchor.callerContext;
+        const id = header.id || 'h_' + this._w.Math.random().toString().replace(/.+\./, '');
+        header.id = id;
+        contextAnchor.urlInput.value = '#' + id;
+
+        if (!contextAnchor.anchorText.value.trim() || !contextAnchor._change) {
+            contextAnchor.anchorText.value = header.textContent;
+        }
+        
+        this.plugins.anchor.setLinkPreview.call(this, contextAnchor, contextAnchor.urlInput.value);
+        this.plugins.selectMenu.close.call(this, this.context.selectMenu.callerContext);
+        this.context.anchor.callerContext.urlInput.focus();
+    },
+
+    onChangeAnchorText: function (contextAnchor, e) {
+        contextAnchor._change = !!e.target.value.trim();
+    },
+
+    onChangeUrlInput: function (contextAnchor, e) {
+        const value = e.target.value.trim();
+        this.plugins.anchor.setLinkPreview.call(this, contextAnchor, value);
+
+        if (/^#/.test(value)) this.plugins.anchor.createHeaderList.call(this, contextAnchor, this.context.selectMenu.callerContext, value);
+        else this.plugins.selectMenu.close.call(this, this.context.selectMenu.callerContext);
+    },
+
+    onFocusUrlInput: function (contextAnchor, contextLink) {
+        const value = contextAnchor.urlInput.value;
+        if (/^#/.test(value)) this.plugins.anchor.createHeaderList.call(this, contextAnchor, contextLink, value);
+    },
+
+    onBlurUrlInput: function (contextList) {
+        this.plugins.selectMenu.close.call(this, contextList);
+    },
+
+    setLinkPreview: function (context, value) {
+        const preview = context.preview;
+        const protocol = this.options.linkProtocol;
+        const reservedProtocol  = /^(mailto\:|https*\:\/\/|#)/.test(value);
+        const sameProtocol = !protocol ? false : this._w.RegExp('^' + value.substr(0, protocol.length)).test(protocol);
+        context.linkValue = preview.textContent = !value ? '' : (protocol && !reservedProtocol && !sameProtocol) ? protocol + value : reservedProtocol ? value : /^www\./.test(value) ? 'http://' + value : this.context.anchor.host + (/^\//.test(value) ? '' : '/') + value;
+
+        if (value.indexOf('#') === 0) {
+            context.bookmark.style.display = 'block';
+            this.util.addClass(context.bookmarkButton, 'active');
+        } else {
+            context.bookmark.style.display = 'none';
+            this.util.removeClass(context.bookmarkButton, 'active');
+        }
+
+        if (value.indexOf('#') === -1 && context.downloadCheck.checked) {
+            context.download.style.display = 'block';
+        } else {
+            context.download.style.display = 'none';
+        }
+    },
+
+    setCtx: function (anchor, contextAnchor) {
+        if (!anchor) return;
+        contextAnchor.linkAnchor = anchor;
+        contextAnchor.linkValue = anchor.href;
+        contextAnchor.currentRel = anchor.rel.split(" ");
+    },
+
+    updateAnchor: function (anchor, url, alt, contextAnchor, notText) {
+        // download
+        if (!/^\#/.test(url) && contextAnchor.downloadCheck.checked) {
+            anchor.setAttribute('download', alt || url);
+        } else {
+            anchor.removeAttribute('download');
+        }
+
+        // new window
+        if (contextAnchor.newWindowCheck.checked) anchor.target = '_blank';
+        else anchor.removeAttribute('target');
+        
+        // rel
+        const rel = contextAnchor.currentRel.join(' ');
+        if (!rel) anchor.removeAttribute('rel');
+        else anchor.rel = rel;
+
+        // est url, alt
+        anchor.href = url;
+        anchor.setAttribute('alt', alt);
+        if (notText) {
+            if (anchor.children.length === 0) anchor.textContent = '';
+        } else {
+            anchor.textContent = alt;
+        }
+    },
+
+    createAnchor: function (contextAnchor, notText) {
+        if (contextAnchor.linkValue.length === 0) return null;
+        
+        const url = contextAnchor.linkValue;
+        const anchor = contextAnchor.anchorText;
+        const anchorText = anchor.value.length === 0 ? url : anchor.value;
+
+        const oA = contextAnchor.linkAnchor || this.util.createElement('A');
+        this.plugins.anchor.updateAnchor(oA, url, anchorText, contextAnchor, notText);
+
+        contextAnchor.linkValue = contextAnchor.preview.textContent = contextAnchor.urlInput.value = contextAnchor.anchorText.value = '';
+
+        return oA;
+    },
+
+    onClick_bookmarkButton: function (contextAnchor) {
+        let url = contextAnchor.urlInput.value;
+        if (/^\#/.test(url)) {
+            url = url.substr(1);
+            contextAnchor.bookmark.style.display = 'none';
+            this.util.removeClass(contextAnchor.bookmarkButton, 'active');
+            this.plugins.selectMenu.close.call(this, this.context.selectMenu.callerContext);
+        } else {
+            url = '#' + url;
+            contextAnchor.bookmark.style.display = 'block';
+            this.util.addClass(contextAnchor.bookmarkButton, 'active');
+            contextAnchor.downloadCheck.checked = false;
+            contextAnchor.download.style.display = 'none';
+            this.plugins.anchor.createHeaderList.call(this, contextAnchor, this.context.selectMenu.callerContext, url);
+        }
+
+        contextAnchor.urlInput.value = url;
+        this.plugins.anchor.setLinkPreview.call(this, contextAnchor, url);
+        contextAnchor.urlInput.focus();
+    },
+
+    onChange_newWindowCheck: function (contextAnchor, e) {
+        if (typeof contextAnchor.linkDefaultRel.check_new_window !== 'string') return;
+        if (e.target.checked) {
+            this.plugins.anchor.setRel.call(this, contextAnchor, this.plugins.anchor._relMerge.call(this, contextAnchor, contextAnchor.linkDefaultRel.check_new_window));
+        } else {
+            this.plugins.anchor.setRel.call(this, contextAnchor, this.plugins.anchor._relDelete.call(this, contextAnchor, contextAnchor.linkDefaultRel.check_new_window));
+        }
+    },
+
+    onChange_downloadCheck: function (contextAnchor, e) {
+        if (e.target.checked) {
+            contextAnchor.download.style.display = 'block';
+            contextAnchor.bookmark.style.display = 'none';
+            this.util.removeClass(contextAnchor.bookmarkButton, 'active');
+            contextAnchor.linkValue = contextAnchor.preview.textContent = contextAnchor.urlInput.value = contextAnchor.urlInput.value.replace(/^\#+/, '');
+            if (typeof contextAnchor.linkDefaultRel.check_bookmark === 'string') {
+                this.plugins.anchor.setRel.call(this, contextAnchor, this.plugins.anchor._relMerge.call(this, contextAnchor, contextAnchor.linkDefaultRel.check_bookmark));
+            }
+        } else {
+            contextAnchor.download.style.display = 'none';
+            if (typeof contextAnchor.linkDefaultRel.check_bookmark === 'string') {
+                this.plugins.anchor.setRel.call(this, contextAnchor, this.plugins.anchor._relDelete.call(this, contextAnchor, contextAnchor.linkDefaultRel.check_bookmark));
+            }
+        }
+    },
+
+    _relMerge: function (contextAnchor, relAttr) {
+        const current = contextAnchor.currentRel;
+        if (!relAttr) return current.join(' ');
+        
+        if (/^only\:/.test(relAttr)) {
+            relAttr = relAttr.replace(/^only\:/, '').trim();
+            contextAnchor.currentRel = relAttr.split(' ');
+            return relAttr;
+        }
+
+        const rels = relAttr.split(' ');
+        for (let i = 0, len = rels.length, index; i < len; i++) {
+            index = current.indexOf(rels[i]);
+            if (index === -1) current.push(rels[i]);
+        }
+
+        return current.join(' ');
+    },
+
+    _relDelete: function (contextAnchor, relAttr) {
+        if (!relAttr) return contextAnchor.currentRel.join(' ');
+        if (/^only\:/.test(relAttr)) relAttr = relAttr.replace(/^only\:/, '').trim();
+
+        const rels = contextAnchor.currentRel.join(' ').replace(this._w.RegExp(relAttr + '\\s*'), '');
+        contextAnchor.currentRel = rels.split(' ');
+        return rels;
+    },
+
+    init: function (contextAnchor) {
+        contextAnchor.linkAnchor = null;
+        contextAnchor.linkValue = contextAnchor.preview.textContent = contextAnchor.urlInput.value = '';
+        contextAnchor.anchorText.value = '';
+        contextAnchor.newWindowCheck.checked = false;
+        contextAnchor.downloadCheck.checked = false;
+        contextAnchor._change = false;
+        this.plugins.anchor.setRel.call(this, contextAnchor, contextAnchor.defaultRel);
+        if (contextAnchor.relList) {
+            this.plugins.anchor.toggleRelList.call(this, contextAnchor, false);
+        }
+        this.context.anchor.callerContext = null;
+        this.plugins.selectMenu.init.call(this, this.context.selectMenu.callerContext);
+    }
+});
+
+
+/***/ }),
 /* 8 */
 /***/ (function(module, exports) {
 
@@ -2344,6 +2592,199 @@ module.exports = require("react");
 
 /***/ }),
 /* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/*
+ * wysiwyg web editor
+ *
+ * suneditor.js
+ * Copyright 2017 JiHong Lee.
+ * MIT license.
+ */
+
+
+(function (global, factory) {
+    if ( true && typeof module.exports === 'object') {
+        module.exports = global.document ?
+            factory(global, true) :
+            function (w) {
+                if (!w.document) {
+                    throw new Error('SUNEDITOR_LANG una finestra con un documento');
+                }
+                return factory(w);
+            };
+    } else {
+        factory(global);
+    }
+}(typeof window !== 'undefined' ? window : this, function (window, noGlobal) {
+    const lang = {
+        code: 'it',
+        toolbar: {
+            default: 'Predefinita',
+            save: 'Salva',
+            font: 'Font',
+            formats: 'Formato',
+            fontSize: 'Grandezza',
+            bold: 'Grassetto',
+            underline: 'Sottolineato',
+            italic: 'Corsivo',
+            strike: 'Barrato',
+            subscript: 'Apice',
+            superscript: 'Pedice',
+            removeFormat: 'Rimuovi formattazione',
+            fontColor: 'Colore testo',
+            hiliteColor: 'Colore sottolineatura',
+            indent: 'Aumenta rientro',
+            outdent: 'Riduci rientro',
+            align: 'Allinea',
+            alignLeft: 'Allinea a sinistra',
+            alignRight: 'Allinea a destra',
+            alignCenter: 'Allinea al centro',
+            alignJustify: 'Giustifica testo',
+            list: 'Elenco',
+            orderList: 'Elenco numerato',
+            unorderList: 'Elenco puntato',
+            horizontalRule: 'Linea orizzontale',
+            hr_solid: 'Linea continua',
+            hr_dotted: 'Puntini',
+            hr_dashed: 'Trattini',
+            table: 'Tabella',
+            link: 'Collegamento ipertestuale',
+            math: 'Formula matematica',
+            image: 'Immagine',
+            video: 'Video',
+            audio: 'Audio',
+            fullScreen: 'A tutto schermo',
+            showBlocks: 'Visualizza blocchi',
+            codeView: 'Visualizza codice',
+            undo: 'Annulla',
+            redo: 'Ripristina',
+            preview: 'Anteprima',
+            print: 'Stampa',
+            tag_p: 'Paragrafo',
+            tag_div: 'Normale (DIV)',
+            tag_h: 'Titolo',
+            tag_blockquote: 'Citazione',
+            tag_pre: 'Codice',
+            template: 'Modello',
+            lineHeight: 'Interlinea',
+            paragraphStyle: 'Stile paragrafo',
+            textStyle: 'Stile testo',
+            imageGallery: 'Galleria di immagini',
+            mention: 'Menzione'
+        },
+        dialogBox: {
+            linkBox: {
+                title: 'Inserisci un link',
+                url: 'Indirizzo',
+                text: 'Testo da visualizzare',
+                newWindowCheck: 'Apri in una nuova finestra',
+                downloadLinkCheck: 'Link per scaricare',
+                bookmark: 'Segnalibro'
+            },
+            mathBox: {
+                title: 'Matematica',
+                inputLabel: 'Notazione matematica',
+                fontSizeLabel: 'Grandezza testo',
+                previewLabel: 'Anteprima'
+            },
+            imageBox: {
+                title: 'Inserisci immagine',
+                file: 'Seleziona da file',
+                url: 'Indirizzo immagine',
+                altText: 'Testo alternativo (ALT)'
+            },
+            videoBox: {
+                title: 'Inserisci video',
+                file: 'Seleziona da file',
+                url: 'Indirizzo video di embed, YouTube/Vimeo'
+            },
+            audioBox: {
+                title: 'Inserisci audio',
+                file: 'Seleziona da file',
+                url: 'Indirizzo audio'
+            },
+            browser: {
+                tags: 'tag',
+                search: 'Ricerca',
+            },
+            caption: 'Inserisci didascalia',
+            close: 'Chiudi',
+            submitButton: 'Invia',
+            revertButton: 'Annulla',
+            proportion: 'Proporzionale',
+            basic: 'Da impostazione',
+            left: 'Sinistra',
+            right: 'Destra',
+            center: 'Centrato',
+            width: 'Larghezza',
+            height: 'Altezza',
+            size: 'Dimensioni',
+            ratio: 'Rapporto'
+        },
+        controller: {
+            edit: 'Modifica',
+            unlink: 'Elimina link',
+            remove: 'Rimuovi',
+            insertRowAbove: 'Inserisci riga sopra',
+            insertRowBelow: 'Inserisci riga sotto',
+            deleteRow: 'Cancella riga',
+            insertColumnBefore: 'Inserisci colonna prima',
+            insertColumnAfter: 'Inserisci colonna dopo',
+            deleteColumn: 'Cancella colonna',
+            fixedColumnWidth: 'Larghezza delle colonne fissa',
+            resize100: 'Ridimensiona 100%',
+            resize75: 'Ridimensiona 75%',
+            resize50: 'Ridimensiona 50%',
+            resize25: 'Ridimensiona 25%',
+            autoSize: 'Ridimensione automatica',
+            mirrorHorizontal: 'Capovolgi orizzontalmente',
+            mirrorVertical: 'Capovolgi verticalmente',
+            rotateLeft: 'Ruota a sinistra',
+            rotateRight: 'Ruota a destra',
+            maxSize: 'Dimensione massima',
+            minSize: 'Dimensione minima',
+            tableHeader: 'Intestazione tabella',
+            mergeCells: 'Unisci celle',
+            splitCells: 'Dividi celle',
+            HorizontalSplit: 'Separa orizontalmente',
+            VerticalSplit: 'Separa verticalmente'
+        },
+        menu: {
+            spaced: 'Spaziato',
+            bordered: 'Bordato',
+            neon: 'Luminoso',
+            translucent: 'Traslucido',
+            shadow: 'Ombra',
+            code: 'Codice'
+        }
+    };
+
+    if (typeof noGlobal === typeof undefined) {
+        if (!window.SUNEDITOR_LANG) {
+            Object.defineProperty(window, 'SUNEDITOR_LANG', {
+                enumerable: true,
+                writable: false,
+                configurable: false,
+                value: {}
+            });
+        }
+
+        Object.defineProperty(window.SUNEDITOR_LANG, 'it', {
+            enumerable: true,
+            writable: true,
+            configurable: true,
+            value: lang
+        });
+    }
+
+    return lang;
+}));
+
+
+/***/ }),
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2511,7 +2952,7 @@ module.exports = require("react");
             fileBrowserContext.titleArea.textContent = pluginContext.title;
             fileBrowserContext.area.style.display = 'block';
 
-            this.plugins.fileBrowser._drawFileList.call(this, this.context[pluginName].url);
+            this.plugins.fileBrowser._drawFileList.call(this, this.context[pluginName].url, this.context[pluginName].header);
         },
 
         _bindClose: null,
@@ -2557,11 +2998,16 @@ module.exports = require("react");
             this._loading.style.display = 'none';
         },
 
-        _drawFileList: function (url) {
+        _drawFileList: function (url, browserHeader) {
             const fileBrowserPlugin = this.plugins.fileBrowser;
 
             const xmlHttp = fileBrowserPlugin._xmlHttp = this.util.getXMLHttpRequest();
             xmlHttp.onreadystatechange = fileBrowserPlugin._callBackGet.bind(this, xmlHttp);
+            if(browserHeader !== null && typeof browserHeader === 'object' && this._w.Object.keys(browserHeader).length > 0){
+                for(let key in browserHeader){
+                    xmlHttp.setRequestHeader(key, browserHeader[key]);
+                }
+            }
             xmlHttp.open('get', url, true);
             xmlHttp.send(null);
 
@@ -2713,7 +3159,7 @@ module.exports = require("react");
 }));
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2876,7 +3322,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2898,6 +3344,7 @@ __webpack_require__.r(__webpack_exports__);
             focusElement: null, // @Override dialog // This element has focus when the dialog is opened.
             previewElement: null,
             fontSizeElement: null,
+            defaultFontSize: '',
             _mathExp: null
         };
 
@@ -2919,6 +3366,7 @@ __webpack_require__.r(__webpack_exports__);
         /** add event listeners */
         math_dialog.querySelector('form').addEventListener('submit', this.submit.bind(core), false);
         math_controller.addEventListener('click', this.onClick_mathController.bind(core));
+        context.math.previewElement.style.fontSize = context.math.defaultFontSize;
 
         /** append html */
         context.dialog.modal.appendChild(math_dialog);
@@ -2932,10 +3380,12 @@ __webpack_require__.r(__webpack_exports__);
     setDialog: function (core) {
         const lang = core.lang;
         const dialog = core.util.createElement('DIV');
+        const fontSize = core.options.mathFontSize;
+        let defaultFontSize = fontSize[0].value;
 
         dialog.className = 'se-dialog-content';
         dialog.style.display = 'none';
-        dialog.innerHTML = '' +
+        let html = '' +
         '<form>' +
             '<div class="se-dialog-header">' +
                 '<button type="button" data-command="close" class="se-btn se-dialog-close" aria-label="Close" title="' + lang.dialogBox.close + '">' +
@@ -2950,12 +3400,13 @@ __webpack_require__.r(__webpack_exports__);
                 '</div>' +
                 '<div class="se-dialog-form">' +
                     '<label>' + lang.dialogBox.mathBox.fontSizeLabel + '</label>' +
-                    '<select class="se-input-select se-math-size">' +
-                        '<option value="1em">1</option>' +
-                        '<option value="1.5em">1.5</option>' +
-                        '<option value="2em">2</option>' +
-                        '<option value="2.5em">2.5</option>' +
-                    '</select>' +
+                    '<select class="se-input-select se-math-size">';
+                    for (let i = 0, len = fontSize.length, f; i < len; i++) {
+                        f = fontSize[i];
+                        if (f.default) defaultFontSize = f.value;
+                        html += '<option value="' + f.value + '"' + (f.default ? ' selected' : '') + '>' + f.text + '</option>';
+                    }
+                html += '</select>' +
                 '</div>' +
                 '<div class="se-dialog-form">' +
                     '<label>' + lang.dialogBox.mathBox.previewLabel + '</label>' +
@@ -2967,6 +3418,8 @@ __webpack_require__.r(__webpack_exports__);
             '</div>' +
         '</form>';
 
+        core.context.math.defaultFontSize = defaultFontSize;
+        dialog.innerHTML = html;
         return dialog;
     },
 
@@ -3164,12 +3617,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _modules_fileBrowser__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
+/* harmony import */ var _modules_fileBrowser__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
 /* harmony import */ var _modules_fileBrowser__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_modules_fileBrowser__WEBPACK_IMPORTED_MODULE_0__);
 /*
  * wysiwyg web editor
@@ -3195,6 +3648,7 @@ __webpack_require__.r(__webpack_exports__);
         context.imageGallery = {
             title: core.lang.toolbar.imageGallery, // @Required @Override fileBrowser - File browser window title.
             url: core.options.imageGalleryUrl, // @Required @Override fileBrowser - File server url.
+            header: core.options.imageGalleryHeader, // @Required @Override fileBrowser - File server http header.
             listClass: 'se-image-list', // @Required @Override fileBrowser - Class name of list div.
             itemTemplateHandler: this.drawItems, // @Required @Override fileBrowser - Function that defines the HTML of an file item.
             selectorHandler: this.setImage.bind(core), // @Required @Override fileBrowser - Function that action when item click.
@@ -3237,7 +3691,7 @@ __webpack_require__.r(__webpack_exports__);
 });
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3291,7 +3745,7 @@ __webpack_require__.r(__webpack_exports__);
 });
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3430,7 +3884,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3539,7 +3993,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3659,7 +4113,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3943,7 +4397,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -4053,7 +4507,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -4071,6 +4525,10 @@ __webpack_require__.r(__webpack_exports__);
     name: 'horizontalRule',
     display: 'submenu',
     add: function (core, targetElement) {
+        core.context.horizontalRule = {
+            currentHR: null,
+        };
+
         /** set submenu */
         let listDiv = this.setSubmenu(core);
 
@@ -4113,6 +4571,23 @@ __webpack_require__.r(__webpack_exports__);
         return listDiv;
     },
 
+    active: function (element) {
+        if (!element) {
+            if (this.util.hasClass(this.context.horizontalRule.currentHR, 'on')) {
+                this.controllersOff();
+            }
+        } else if (/HR/i.test(element.nodeName)) {
+            this.context.horizontalRule.currentHR = element;
+            if (!this.util.hasClass(element, 'on')) {
+                this.util.addClass(element, 'on');
+                this.controllersOn('hr', this.util.removeClass.bind(this.util, element, 'on'));
+            }
+            return true;
+        }
+
+        return false;
+    },
+
     appendHr: function (className) {
         const oHr = this.util.createElement('HR');
         oHr.className = className;
@@ -4144,7 +4619,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -4256,7 +4731,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -4711,7 +5186,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -4854,7 +5329,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -6293,7 +6768,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -6369,7 +6844,7 @@ __webpack_require__.r(__webpack_exports__);
 });
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -6544,17 +7019,17 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _modules_dialog__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
 /* harmony import */ var _modules_dialog__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_modules_dialog__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _modules_anchor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6);
+/* harmony import */ var _modules_anchor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(7);
 /* harmony import */ var _modules_component__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
 /* harmony import */ var _modules_component__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_modules_component__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _modules_resizing__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(7);
+/* harmony import */ var _modules_resizing__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6);
 /* harmony import */ var _modules_resizing__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_modules_resizing__WEBPACK_IMPORTED_MODULE_3__);
 /* harmony import */ var _modules_fileManager__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(3);
 /* harmony import */ var _modules_fileManager__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_modules_fileManager__WEBPACK_IMPORTED_MODULE_4__);
@@ -7294,8 +7769,8 @@ __webpack_require__.r(__webpack_exports__);
         // link
         const anchor = this.plugins.anchor.createAnchor.call(this, contextImage.anchorCtx, true);
         if (anchor) {
-            contextImage._linkElement = anchor;
-            cover.insertBefore(this.plugins.image.onRender_link.call(this, imageEl, anchor), contextImage._caption);
+            contextImage._linkElement = contextImage._linkElement === anchor ? anchor.cloneNode(false) : anchor;
+            cover.insertBefore(this.plugins.image.onRender_link.call(this, imageEl, contextImage._linkElement), contextImage._caption);
         } else if (contextImage._linkElement !== null) {
             const imageElement = imageEl;
 
@@ -7315,7 +7790,13 @@ __webpack_require__.r(__webpack_exports__);
                 existElement.parentNode.insertBefore(container, existElement.nextElementSibling);
                 this.util.removeItem(contextImage._element);
             } else {
-                existElement.parentNode.replaceChild(container, existElement);
+                if (this.util.isFormatElement(existElement.parentNode)) {
+                    const formats = existElement.parentNode;
+                    formats.parentNode.insertBefore(container, existElement.previousSibling ? formats.nextElementSibling : formats);
+                    this.util.removeItem(existElement);
+                } else {
+                    existElement.parentNode.replaceChild(container, existElement);
+                }
             }
 
             imageEl = container.querySelector('img');
@@ -7383,6 +7864,7 @@ __webpack_require__.r(__webpack_exports__);
         contextImage._caption = this.util.getChildElement(contextImage._cover, 'FIGCAPTION');
         contextImage._align = element.style.float || element.getAttribute('data-align') || 'none';
         element.style.float = '';
+        this.plugins.anchor.setCtx(contextImage._linkElement, contextImage.anchorCtx);
 
         if (size) {
             contextImage._element_w = size.w;
@@ -7629,14 +8111,14 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _modules_dialog__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
 /* harmony import */ var _modules_dialog__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_modules_dialog__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _modules_anchor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6);
+/* harmony import */ var _modules_anchor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(7);
 /*
  * wysiwyg web editor
  *
@@ -7862,7 +8344,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -7871,7 +8353,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _modules_dialog__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_modules_dialog__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _modules_component__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
 /* harmony import */ var _modules_component__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_modules_component__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _modules_resizing__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7);
+/* harmony import */ var _modules_resizing__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
 /* harmony import */ var _modules_resizing__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_modules_resizing__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var _modules_fileManager__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(3);
 /* harmony import */ var _modules_fileManager__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_modules_fileManager__WEBPACK_IMPORTED_MODULE_3__);
@@ -8835,7 +9317,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 29 */
+/* 30 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -9384,7 +9866,7 @@ __webpack_require__.r(__webpack_exports__);
 });
 
 /***/ }),
-/* 30 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9580,7 +10062,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 31 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9772,7 +10254,7 @@ __webpack_require__.r(__webpack_exports__);
 }));
 
 /***/ }),
-/* 32 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9964,7 +10446,7 @@ __webpack_require__.r(__webpack_exports__);
 }));
 
 /***/ }),
-/* 33 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10157,7 +10639,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 34 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10349,7 +10831,7 @@ __webpack_require__.r(__webpack_exports__);
 }));
 
 /***/ }),
-/* 35 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10541,7 +11023,7 @@ __webpack_require__.r(__webpack_exports__);
 }));
 
 /***/ }),
-/* 36 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10734,7 +11216,7 @@ __webpack_require__.r(__webpack_exports__);
 }));
 
 /***/ }),
-/* 37 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10924,199 +11406,6 @@ __webpack_require__.r(__webpack_exports__);
 
     return lang;
 }));
-
-/***/ }),
-/* 38 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/*
- * wysiwyg web editor
- *
- * suneditor.js
- * Copyright 2017 JiHong Lee.
- * MIT license.
- */
-
-
-(function (global, factory) {
-    if ( true && typeof module.exports === 'object') {
-        module.exports = global.document ?
-            factory(global, true) :
-            function (w) {
-                if (!w.document) {
-                    throw new Error('SUNEDITOR_LANG una finestra con un documento');
-                }
-                return factory(w);
-            };
-    } else {
-        factory(global);
-    }
-}(typeof window !== 'undefined' ? window : this, function (window, noGlobal) {
-    const lang = {
-        code: 'it',
-        toolbar: {
-            default: 'Predefinita',
-            save: 'Salva',
-            font: 'Font',
-            formats: 'Formato',
-            fontSize: 'Grandezza',
-            bold: 'Grassetto',
-            underline: 'Sottolineato',
-            italic: 'Italico',
-            strike: 'Cancellato',
-            subscript: 'Apice',
-            superscript: 'Pedice',
-            removeFormat: 'Rimuovi Formattazione',
-            fontColor: 'Colore Testo',
-            hiliteColor: 'Colore Sottolineatura',
-            indent: 'Aumenta rientro',
-            outdent: 'Riduci rientro',
-            align: 'Allinea',
-            alignLeft: 'Sinistra',
-            alignRight: 'Destra',
-            alignCenter: 'Centrato',
-            alignJustify: 'Giustificato',
-            list: 'Lista',
-            orderList: 'Lista numerata',
-            unorderList: 'Lista Puntata',
-            horizontalRule: 'Linea Orizzontale',
-            hr_solid: 'Linea',
-            hr_dotted: 'Puntinato',
-            hr_dashed: 'Tratteggiato',
-            table: 'Tabella',
-            link: 'Link',
-            math: 'Matematica',
-            image: 'Immagine',
-            video: 'Video',
-            audio: 'Audio',
-            fullScreen: 'Tutto Schermo',
-            showBlocks: 'Visualizza Blocchi',
-            codeView: 'Visualizza Codice',
-            undo: 'Annulla',
-            redo: 'Ripristina',
-            preview: 'Anteprima',
-            print: 'Stampa',
-            tag_p: 'Paragrafo',
-            tag_div: 'DIV Normale',
-            tag_h: 'Intestazione',
-            tag_blockquote: 'Citazione',
-            tag_pre: 'Codice',
-            template: 'Template',
-            lineHeight: 'Altezza linea',
-            paragraphStyle: 'Stile Paragrafo',
-            textStyle: 'Stile Testo',
-            imageGallery: 'Galleria di immagini',
-            mention: 'Citare'
-        },
-        dialogBox: {
-            linkBox: {
-                title: 'Inserisci un Link',
-                url: 'Indirizzo in link',
-                text: 'Applica Testo da visualizzare',
-                newWindowCheck: 'Apri in una nuova finestra',
-                downloadLinkCheck: 'Link per scaricare',
-                bookmark: 'Segnalibro'
-            },
-            mathBox: {
-                title: 'Matematica',
-                inputLabel: 'Notazione matematica',
-                fontSizeLabel: 'Grandezza testo',
-                previewLabel: 'Anteprima'
-            },
-            imageBox: {
-                title: 'Inserisci Immagine',
-                file: 'Seleziona da file',
-                url: 'Indirizzo immagine',
-                altText: 'Testo alternativo (ALT)'
-            },
-            videoBox: {
-                title: 'Inserisci Video',
-                file: 'Seleziona da file',
-                url: 'Indirizzo video, YouTube/Vimeo'
-            },
-            audioBox: {
-                title: 'Insertar Audio',
-                file: 'Seleziona da file',
-                url: 'Indirizzo audio'
-            },
-            browser: {
-                tags: 'tag',
-                search: 'Ricerca',
-            },
-            caption: 'Inserisci descrizione',
-            close: 'ClChiudiose',
-            submitButton: 'Invia',
-            revertButton: 'Annulla',
-            proportion: 'Proporzionale',
-            basic: 'Da impostazione',
-            left: 'Sinistra',
-            right: 'Destra',
-            center: 'Centrato',
-            width: 'Larghezza',
-            height: 'Altezza',
-            size: 'Peso',
-            ratio: 'Rapporto'
-        },
-        controller: {
-            edit: 'Modifica',
-            unlink: 'Elimina link',
-            remove: 'Rimuovi',
-            insertRowAbove: 'Inserisci linea sopra',
-            insertRowBelow: 'Inserisci linea sotto',
-            deleteRow: 'Cancella riga',
-            insertColumnBefore: 'Inserisci una colonna prima',
-            insertColumnAfter: 'Inserisci una colonna dopo',
-            deleteColumn: 'Cancella colonna',
-            fixedColumnWidth: 'Larghezza della colonna fissa',
-            resize100: 'Ridimensiona 100%',
-            resize75: 'Ridimensiona 75%',
-            resize50: 'Ridimensiona 50%',
-            resize25: 'Ridimensiona 25%',
-            autoSize: 'Ridimensione automatica',
-            mirrorHorizontal: 'Specchia, orizontale',
-            mirrorVertical: 'Specchia, verticale',
-            rotateLeft: 'Ruota a sinistra',
-            rotateRight: 'Ruota a destra',
-            maxSize: 'Dimensione massima',
-            minSize: 'Dimensione minima',
-            tableHeader: 'Intestazione Tabella',
-            mergeCells: 'Unisci celle',
-            splitCells: 'Dividi celle',
-            HorizontalSplit: 'Separa orizontale',
-            VerticalSplit: 'Separa verticale'
-        },
-        menu: {
-            spaced: 'Spaziatura',
-            bordered: 'Bordo',
-            neon: 'Luminoso',
-            translucent: 'Translucente',
-            shadow: 'Ombra',
-            code: 'Codice'
-        }
-    };
-
-    if (typeof noGlobal === typeof undefined) {
-        if (!window.SUNEDITOR_LANG) {
-            Object.defineProperty(window, 'SUNEDITOR_LANG', {
-                enumerable: true,
-                writable: false,
-                configurable: false,
-                value: {}
-            });
-        }
-
-        Object.defineProperty(window.SUNEDITOR_LANG, 'it', {
-            enumerable: true,
-            writable: true,
-            configurable: true,
-            value: lang
-        });
-    }
-
-    return lang;
-}));
-
 
 /***/ }),
 /* 39 */
@@ -12472,6 +12761,199 @@ __webpack_require__.r(__webpack_exports__);
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
+/*
+ * wysiwyg web editor
+ *
+ * suneditor.js
+ * Copyright 2017 JiHong Lee.
+ * MIT license.
+ */
+
+
+(function (global, factory) {
+    if ( true && typeof module.exports === 'object') {
+        module.exports = global.document ?
+            factory(global, true) :
+            function (w) {
+                if (!w.document) {
+                    throw new Error('SUNEDITOR_LANG a window with a document');
+                }
+                return factory(w);
+            };
+    } else {
+        factory(global);
+    }
+}(typeof window !== 'undefined' ? window : this, function (window, noGlobal) {
+    const lang = {
+        code: 'he',
+        toolbar: {
+            default: 'ברירת מחדל',
+            save: 'שמור',
+            font: 'גופן',
+            formats: 'עיצוב',
+            fontSize: 'גודל',
+            bold: 'מודגש',
+            underline: 'קו תחתון',
+            italic: 'נטוי',
+            strike: 'קו חוצה',
+            subscript: 'עילי',
+            superscript: 'תחתי',
+            removeFormat: 'הסר עיצוב',
+            fontColor: 'צבע גופן',
+            hiliteColor: 'צבע קו תחתון',
+            indent: 'הגדל כניסה',
+            outdent: 'הקטן כניסה',
+            align: 'יישור',
+            alignLeft: 'יישר לשמאל',
+            alignRight: 'יישר לימין',
+            alignCenter: 'מרכז',
+            alignJustify: 'יישר לשני הצדדים',
+            list: 'רשימה',
+            orderList: 'מספור',
+            unorderList: 'תבליטים',
+            horizontalRule: 'קו אופקי',
+            hr_solid: 'קו',
+            hr_dotted: 'נקודות',
+            hr_dashed: 'מקפים',
+            table: 'טבלה',
+            link: 'קישור',
+            math: 'מתמטיקה',
+            image: 'תמונה',
+            video: 'חוזי',
+            audio: 'שמע',
+            fullScreen: 'מסך מלא',
+            showBlocks: 'הצג גושים',
+            codeView: 'הצג קוד',
+            undo: 'בטל',
+            redo: 'חזור',
+            preview: 'תצוגה מקדימה',
+            print: 'הדפס',
+            tag_p: 'פסקה',
+            tag_div: 'רגילה (DIV)',
+            tag_h: 'כותרת',
+            tag_blockquote: 'ציטוט',
+            tag_pre: 'קוד',
+            template: 'תבנית',
+            lineHeight: 'גובה השורה',
+            paragraphStyle: 'סגנון פסקה',
+            textStyle: 'סגנון גופן',
+            imageGallery: 'גלרית תמונות',
+            mention: 'הזכר'
+        },
+        dialogBox: {
+            linkBox: {
+                title: 'הכנס קשור',
+                url: 'כתובת קשור',
+                text: 'תיאור',
+                newWindowCheck: 'פתח בחלון חדש',
+                downloadLinkCheck: 'קישור להורדה',
+                bookmark: 'סמניה'
+            },
+            mathBox: {
+                title: 'נוסחה',
+                inputLabel: 'סימנים מתמטים',
+                fontSizeLabel: 'גודל גופן',
+                previewLabel: 'תצוגה מקדימה'
+            },
+            imageBox: {
+                title: 'הכנס תמונה',
+                file: 'בחר מקובץ',
+                url: 'כתובת URL תמונה',
+                altText: 'תיאור (תגית alt)'
+            },
+            videoBox: {
+                title: 'הכנס סרטון',
+                file: 'בחר מקובץ',
+                url: 'כתובת הטמעה YouTube/Vimeo'
+            },
+            audioBox: {
+                title: 'הכנס שמע',
+                file: 'בחר מקובץ',
+                url: 'כתובת URL שמע'
+            },
+            browser: {
+                tags: 'תג',
+                search: 'חפש',
+            },
+            caption: 'הכנס תיאור',
+            close: 'סגור',
+            submitButton: 'שלח',
+            revertButton: 'בטל',
+            proportion: 'שמר יחס',
+            basic: 'בסיסי',
+            left: 'שמאל',
+            right: 'ימין',
+            center: 'מרכז',
+            width: 'רוחב',
+            height: 'גובה',
+            size: 'גודל',
+            ratio: 'יחס'
+        },
+        controller: {
+            edit: 'ערוך',
+            unlink: 'הסר קישורים',
+            remove: 'הסר',
+            insertRowAbove: 'הכנס שורה מעל',
+            insertRowBelow: 'הכנס שורה מתחת',
+            deleteRow: 'מחק שורה',
+            insertColumnBefore: 'הכנס עמודה לפני',
+            insertColumnAfter: 'הכנס עמודה אחרי',
+            deleteColumn: 'מחק עמודה',
+            fixedColumnWidth: 'קבע רוחב עמודות',
+            resize100: 'ללא הקטנה',
+            resize75: 'הקטן 75%',
+            resize50: 'הקטן 50%',
+            resize25: 'הקטן 25%',
+            autoSize: 'הקטן אוטומטית',
+            mirrorHorizontal: 'הפוך לרוחב',
+            mirrorVertical: 'הפוך לגובה',
+            rotateLeft: 'סובב שמאלה',
+            rotateRight: 'סובב ימינה',
+            maxSize: 'גודל מרבי',
+            minSize: 'גודל מזערי',
+            tableHeader: 'כותרת טבלה',
+            mergeCells: 'מזג תאים',
+            splitCells: 'פצל תא',
+            HorizontalSplit: 'פצל לגובה',
+            VerticalSplit: 'פצל לרוחב'
+        },
+        menu: {
+            spaced: 'מרווח',
+            bordered: 'בעל מיתאר',
+            neon: 'זוהר',
+            translucent: 'שקוף למחצה',
+            shadow: 'צל',
+            code: 'קוד'
+        }
+    };
+
+    if (typeof noGlobal === typeof undefined) {
+        if (!window.SUNEDITOR_LANG) {
+            Object.defineProperty(window, 'SUNEDITOR_LANG', {
+                enumerable: true,
+                writable: false,
+                configurable: false,
+                value: {}
+            });
+        }
+
+        Object.defineProperty(window.SUNEDITOR_LANG, 'he', {
+            enumerable: true,
+            writable: true,
+            configurable: true,
+            value: lang
+        });
+    }
+
+    return lang;
+}));
+
+
+/***/ }),
+/* 47 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -12481,7 +12963,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-var ReactPropTypesSecret = __webpack_require__(47);
+var ReactPropTypesSecret = __webpack_require__(48);
 
 function emptyFunction() {}
 function emptyFunctionWithReset() {}
@@ -12539,7 +13021,7 @@ module.exports = function() {
 
 
 /***/ }),
-/* 47 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12558,7 +13040,7 @@ module.exports = ReactPropTypesSecret;
 
 
 /***/ }),
-/* 48 */
+/* 49 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -12906,8 +13388,10 @@ const util_util = {
                 continue;
             }
             
-            for (let c = 0, cLen = rules.length; c < cLen; c++) {
-                cssText += rules[c].cssText;
+            if (rules) {
+                for (let c = 0, cLen = rules.length; c < cLen; c++) {
+                    cssText += rules[c].cssText;
+                }
             }
         }
 
@@ -12952,23 +13436,26 @@ const util_util = {
      * @returns {Number}
      */
     getByteLength: function(text) {
+        if (!text || !text.toString) return 0;
+        text = text.toString();
+
         const encoder = this._w.encodeURIComponent;
         let cr, cl;
         if (this.isIE_Edge) {
-            cl = this._w.unescape(encoder(text.toString())).length;
+            cl = this._w.unescape(encoder(text)).length;
             cr = 0;
 
-            if (encoder(text.toString()).match(/(%0A|%0D)/gi) !== null) {
-                cr = encoder(text.toString()).match(/(%0A|%0D)/gi).length;
+            if (encoder(text).match(/(%0A|%0D)/gi) !== null) {
+                cr = encoder(text).match(/(%0A|%0D)/gi).length;
             }
 
             return cl + cr;
         } else {
-            cl = (new this._w.TextEncoder('utf-8').encode(text.toString())).length;
+            cl = (new this._w.TextEncoder('utf-8').encode(text)).length;
             cr = 0;
 
-            if (encoder(text.toString()).match(/(%0A|%0D)/gi) !== null) {
-                cr = encoder(text.toString()).match(/(%0A|%0D)/gi).length;
+            if (encoder(text).match(/(%0A|%0D)/gi) !== null) {
+                cr = encoder(text).match(/(%0A|%0D)/gi).length;
             }
 
             return cl + cr;
@@ -13508,8 +13995,10 @@ const util_util = {
                 children.push(current);
             }
 
-            for (let i = 0, len = current.children.length; i < len; i++) {
-                recursionFunc(current.children[i]);
+            if (!!current.children) {
+                for (let i = 0, len = current.children.length; i < len; i++) {
+                    recursionFunc(current.children[i]);
+                }
             }
         })(element);
 
@@ -14356,29 +14845,12 @@ const util_util = {
     },
 
     /**
-     * @description Get key of the options.allowStyles
-     * @param {Node} node Node
-     * @returns {String}
-     * @private
-     */
-    _getCheckFormat: function (node) {
-        return node.nodeType === 3 ? 'null' :
-         this.isComponent(node) ? 'component' :
-         this.isClosureFreeFormatElement(node) ? 'closureFreeFormat' :
-         this.isFreeFormatElement(node) ? 'freeFormat' :
-         this.isClosureRangeFormatElement(node) ? 'closureRangeFormat' :
-         this.isRangeFormatElement(node) ? 'rangeFormat' :
-         this.isFormatElement(node) ? 'format' : node.nodeName.toLowerCase();
-    },
-
-    /**
      * @description Fix tags that do not fit the editor format.
      * @param {Element} documentFragment Document fragment "DOCUMENT_FRAGMENT_NODE" (nodeType === 11)
      * @param {RegExp} htmlCheckWhitelistRegExp Editor tags whitelist (core._htmlCheckWhitelistRegExp)
-     * @param {Object} allowStyles options.allowStyles
      * @private
      */
-    _consistencyCheckOfHTML: function (documentFragment, htmlCheckWhitelistRegExp, allowStyles) {
+    _consistencyCheckOfHTML: function (documentFragment, htmlCheckWhitelistRegExp) {
         /**
          * It is can use ".children(util.getListChildren)" to exclude text nodes, but "documentFragment.children" is not supported in IE.
          * So check the node type and exclude the text no (current.nodeType !== 1)
@@ -14421,21 +14893,6 @@ const util_util = {
              (this.isFormatElement(current) || this.isComponent(current) || this.isList(current)) &&
              !this.isRangeFormatElement(current.parentNode) && !this.isListCell(current.parentNode) &&
              !this.getParentElement(current, this.isComponent) && nrtag;
-
-            // @v3
-            //  if (!result) {
-            //     const styles = allowStyles[this._getCheckFormat(current)];
-            //     if (!!styles && styles.length > 0) {
-            //         let s = '';
-            //         const currentStyle = current.style;
-            //         for (let i = 0, len = styles.length; i < len; i++) {
-            //             s += styles[i] + ':' + currentStyle[styles[i]] + '; ';
-            //         }
-                    
-            //         if (!s) current.removeAttribute('style');
-            //         else current.style.cssText = s;
-            //     }
-            //  }
 
             return result;
         }.bind(this));
@@ -14771,7 +15228,7 @@ const util_util = {
         const relative = el.relative;
         const editorArea = el.editorArea;
         const isNewToolbarContainer = mergeOptions.toolbarContainer && mergeOptions.toolbarContainer !== originOptions.toolbarContainer;
-        const isNewToolbar = mergeOptions.buttonList !== originOptions.buttonList || mergeOptions.mode !== originOptions.mode || isNewToolbarContainer;
+        const isNewToolbar = mergeOptions.lang !== originOptions.lang || mergeOptions.buttonList !== originOptions.buttonList || mergeOptions.mode !== originOptions.mode || isNewToolbarContainer;
 
         const tool_bar = this._createToolBar(document, (isNewToolbar ? mergeOptions.buttonList : originOptions.buttonList), mergeOptions.plugins, mergeOptions);
         if (tool_bar.pluginCallButtons.math) this._checkKatexMath(mergeOptions.katex);
@@ -14944,9 +15401,9 @@ const util_util = {
         /** Values */
         options.lang = options.lang || en_default.a;
         options.defaultTag = typeof options.defaultTag === 'string' ? options.defaultTag : 'p';
-        const textTags = options.textTags = [{bold: 'STRONG', underline: 'U', italic: 'EM', strike: 'DEL'}, (options.textTags || {})].reduce(function (_default, _new) {
+        const textTags = options.textTags = [{bold: 'STRONG', underline: 'U', italic: 'EM', strike: 'DEL', sub: 'SUB', sup: 'SUP'}, (options.textTags || {})].reduce(function (_default, _new) {
             for (let key in _new) {
-                if (lib_util.hasOwn(_new, key)) _default[key] = _new[key];
+                _default[key] = _new[key];
             }
             return _default;
         }, {});
@@ -14959,44 +15416,23 @@ const util_util = {
             'i': textTags.italic,
             'del': textTags.strike,
             'strike': textTags.strike,
-            's': textTags.strike
+            's': textTags.strike,
+            'sub': textTags.sub,
+            'sup': textTags.sup
         };
         options.value = typeof options.value === 'string' ? options.value : null;
         options.historyStackDelayTime = typeof options.historyStackDelayTime === 'number' ? options.historyStackDelayTime : 400;
         /** Whitelist */
-        options._defaultTagsWhitelist = typeof options._defaultTagsWhitelist === 'string' ? options._defaultTagsWhitelist : 'br|p|div|pre|blockquote|h[1-6]|ol|ul|li|hr|figure|figcaption|img|iframe|audio|video|source|table|thead|tbody|tr|th|td|a|b|strong|var|i|em|u|ins|s|span|strike|del|sub|sup|code';
-        options._editorTagsWhitelist = options._defaultTagsWhitelist + (typeof options.addTagsWhitelist === 'string' && options.addTagsWhitelist.length > 0 ? '|' + options.addTagsWhitelist : '');
-        options.pasteTagsWhitelist = typeof options.pasteTagsWhitelist === 'string' ? options.pasteTagsWhitelist : options._editorTagsWhitelist;
+        const whitelist = 'br|p|div|pre|blockquote|h1|h2|h3|h4|h5|h6|ol|ul|li|hr|figure|figcaption|img|iframe|audio|video|source|table|thead|tbody|tr|th|td|a|b|strong|var|i|em|u|ins|s|span|strike|del|sub|sup|code|svg|path';
+        options._defaultTagsWhitelist = typeof options._defaultTagsWhitelist === 'string' ? options._defaultTagsWhitelist : whitelist;
+        options._editorTagsWhitelist = this._setWhitelist(options._defaultTagsWhitelist + (typeof options.addTagsWhitelist === 'string' && options.addTagsWhitelist.length > 0 ? '|' + options.addTagsWhitelist : ''), options.tagsBlacklist);
+        options.pasteTagsWhitelist = this._setWhitelist(typeof options.pasteTagsWhitelist === 'string' ? options.pasteTagsWhitelist : options._editorTagsWhitelist, options.pasteTagsBlacklist);
         options.attributesWhitelist = (!options.attributesWhitelist || typeof options.attributesWhitelist !== 'object') ? null : options.attributesWhitelist;
-        // @v3
-        // const defaultAllowStyles = {
-        //     format: ['margin-left', 'margin-right', 'text-align', 'line-height'],
-        //     rangeFormat: [],
-        //     closureRangeFormat: [],
-        //     freeFormat: [],
-        //     closureFreeFormat: [],
-        //     component: [],
-        //     span: ['font-family', 'color', 'background-color', 'font-size']
-        // };
-        // options.allowStyles = (!options.allowStyles || typeof options.allowStyles !== 'object') ? defaultAllowStyles : [defaultAllowStyles, options.allowStyles].reduce(function (_default, _new) {
-        //     for (let key in _new) {
-        //         if (!_default[key]) _default[key] = [];
-        //         const newStyle = _new[key];
-        //         if (typeof newStyle === 'string') {
-        //             _default[key] = !newStyle ? [] : newStyle.split('|');
-        //         } else {
-        //             for (let i = 0, len = newStyle.length, n; i < len; i++) {
-        //                 n = newStyle[i];
-        //                 if (_default[key].indexOf(n) === -1) _default[key].push(n)
-        //             }
-        //         }
-        //     }
-        //     return _default;
-        // }, {});
         /** Layout */
         options.mode = options.mode || 'classic'; // classic, inline, balloon, balloon-always
         options.rtl = !!options.rtl;
         options._editableClass = 'sun-editor-editable' + (options.rtl ? ' se-rtl' : '');
+        options._printClass = typeof options._printClass === 'string' ? options._printClass : null;
         options.toolbarWidth = options.toolbarWidth ? (lib_util.isNumber(options.toolbarWidth) ? options.toolbarWidth + 'px' : options.toolbarWidth) : 'auto';
         options.toolbarContainer = typeof options.toolbarContainer === 'string' ? document.querySelector(options.toolbarContainer) : options.toolbarContainer;
         options.stickyToolbar = (/balloon/i.test(options.mode) || !!options.toolbarContainer) ? -1 : options.stickyToolbar === undefined ? 0 : (/^\d+/.test(options.stickyToolbar) ? lib_util.getNumber(options.stickyToolbar, 0) : -1);
@@ -15009,6 +15445,12 @@ const util_util = {
         options.codeMirror = options.codeMirror ? options.codeMirror.src ? options.codeMirror : {src: options.codeMirror} : null;
         /** katex object (Math plugin) */
         options.katex = options.katex ? options.katex.src ? options.katex : {src: options.katex} : null;
+        options.mathFontSize = !!options.mathFontSize ? options.mathFontSize : [
+            {text: '1', value: '1em'},
+            {text: '1.5', value: '1.5em'},
+            {text: '2', value: '2em'},
+            {text: '2.5', value: '2.5em'}
+        ];
         /** Display */
         options.position = typeof options.position === 'string' ? options.position : null;
         options.display = options.display || (element.style.display === 'none' || !element.style.display ? 'block' : element.style.display);
@@ -15057,6 +15499,7 @@ const util_util = {
         options.imageAccept = (typeof options.imageAccept !== 'string' || options.imageAccept.trim() === "*") ? 'image/*' : options.imageAccept.trim() || 'image/*';
         /** Image - image gallery */
         options.imageGalleryUrl = typeof options.imageGalleryUrl === 'string' ? options.imageGalleryUrl : null;
+        options.imageGalleryHeader = options.imageGalleryHeader || null;
         /** Video */
         options.videoResizing = options.videoResizing === undefined ? true : options.videoResizing;
         options.videoHeightShow = options.videoHeightShow === undefined ? true : !!options.videoHeightShow;
@@ -15139,6 +15582,17 @@ const util_util = {
 
         /** _init options */
         options._editorStyles = lib_util._setDefaultOptionStyle(options, options.defaultStyle);
+    },
+
+    _setWhitelist: function (whitelist, blacklist) {
+        if (typeof blacklist !== 'string') return whitelist;
+        blacklist = blacklist.split('|');
+        whitelist = whitelist.split('|');
+        for (let i = 0, len = blacklist.length, index; i < len; i++) {
+            index = whitelist.indexOf(blacklist[i]);
+            if (index > -1) whitelist.splice(index, 1);
+        }
+        return whitelist.join('|');
     },
 
     /**
@@ -15387,7 +15841,6 @@ const util_util = {
 
                 if (vertical) {
                     const sv =  separator_vertical.cloneNode(false);
-                    if (align) sv.style.float = align;
                     _buttonTray.appendChild(sv);
                 }
                 
@@ -15852,6 +16305,12 @@ const _Context = function (element, cons, options) {
         _shadowRoot: null,
 
         /**
+         * @description Block controller mousedown events in "shadowRoot" environment
+         * @private
+         */
+        _shadowRootControllerEventTarget: null,
+
+        /**
          * @description Util object
          */
         util: util,
@@ -16293,6 +16752,32 @@ const _Context = function (element, cons, options) {
         },
 
         /**
+         * @description Gets the current editor-relative scroll offset.
+         * @returns {Object} {top, left}
+         */
+        getGlobalScrollOffset: function () {
+            let t = 0, l = 0;
+            let el = context.element.topArea;
+            while (el) {
+                t += el.scrollTop;
+                l += el.scrollLeft;
+                el = el.parentElement;
+            }
+            
+            el = this._shadowRoot ? this._shadowRoot.host : null;
+            while (el) {
+                t += el.scrollTop;
+                l += el.scrollLeft;
+                el = el.parentElement;
+            }
+
+            return {
+                top: t,
+                left: l
+            };
+        },
+
+        /**
          * @description Method for managing submenu element.
          * You must add the "submenu" element using the this method at custom plugin.
          * @param {String} pluginName Plugin name
@@ -16436,13 +16921,8 @@ const _Context = function (element, cons, options) {
 
             // set menu position
             const toolbarTop = toolbarOffset.top;
-            let menuHeight = menu.offsetHeight;
-            let el = context.element.topArea;
-            let scrollTop = 0;
-            while (!!el) {
-                scrollTop += el.scrollTop;
-                el = el.parentElement;
-            }
+            const menuHeight = menu.offsetHeight;
+            const scrollTop = this.getGlobalScrollOffset().top;
 
             const menuHeight_bottom = _w.innerHeight - (toolbarTop - scrollTop + bt + element.parentElement.offsetHeight);
             if (menuHeight_bottom < menuHeight) {
@@ -16491,7 +16971,13 @@ const _Context = function (element, cons, options) {
                     this.currentFileComponentInfo = this.getFileComponent(arg);
                     continue;
                 }
-                if (arg.style) arg.style.display = 'block';
+                if (arg.style) {
+                    arg.style.display = 'block';
+                    if (this._shadowRoot && this._shadowRootControllerEventTarget.indexOf(arg) === -1) {
+                        arg.addEventListener('mousedown', function (e) { e.preventDefault(); e.stopPropagation(); });
+                        this._shadowRootControllerEventTarget.push(arg);
+                    }
+                }
                 this.controllerArray.push(arg);
             }
 
@@ -16639,16 +17125,18 @@ const _Context = function (element, cons, options) {
             } else {
                 try {
                     const range = this.getRange();
-
                     if (range.startContainer === range.endContainer && util.isWysiwygDiv(range.startContainer)) {
-                        const format = util.createElement(options.defaultTag);
-                        const br = util.createElement('BR');
-                        format.appendChild(br);
-                        context.element.wysiwyg.appendChild(format);
-                        this.setRange(br, 0, br, 0);
-                    } else {
-                        this.setRange(range.startContainer, range.startOffset, range.endContainer, range.endOffset);
+                        const currentNode = range.commonAncestorContainer.children[range.startOffset];
+                        if (!util.isFormatElement(currentNode) && !util.isComponent(currentNode)) {
+                            const format = util.createElement(options.defaultTag);
+                            const br = util.createElement('BR');
+                            format.appendChild(br);
+                            context.element.wysiwyg.insertBefore(format, currentNode);
+                            this.setRange(br, 0, br, 0);
+                            return;
+                        }
                     }
+                    this.setRange(range.startContainer, range.startOffset, range.endContainer, range.endOffset);
                 } catch (e) {
                     this.nativeFocus();
                 }
@@ -16815,7 +17303,7 @@ const _Context = function (element, cons, options) {
          * @returns {Node}
          */
         getSelectionNode: function () {
-            if (util.isWysiwygDiv(this._variable._selectionNode)) this._editorRange();
+            if (!context.element.wysiwyg.contains(this._variable._selectionNode)) this._editorRange();
             if (!this._variable._selectionNode) {
                 const selectionNode = util.getChildElement(context.element.wysiwyg.firstChild, function (current) { return current.childNodes.length === 0 || current.nodeType === 3; }, false);
                 if (!selectionNode) {
@@ -16847,7 +17335,8 @@ const _Context = function (element, cons, options) {
             this._variable._range = range;
 
             if (range.collapsed) {
-                selectionNode = range.commonAncestorContainer;
+                if (util.isWysiwygDiv(range.commonAncestorContainer)) selectionNode = range.commonAncestorContainer.children[range.startOffset] || range.commonAncestorContainer;
+                else selectionNode = range.commonAncestorContainer;
             } else {
                 selectionNode = selection.extentNode || selection.anchorNode;
             }
@@ -17555,9 +18044,14 @@ const _Context = function (element, cons, options) {
             let container, offset = 0;
             let startCon = range.startContainer;
             let endCon = range.endContainer;
-            const startOff = range.startOffset;
-            const endOff = range.endOffset;
+            let startOff = range.startOffset;
+            let endOff = range.endOffset;
             const commonCon = (range.commonAncestorContainer.nodeType === 3 && range.commonAncestorContainer.parentNode === startCon.parentNode) ? startCon.parentNode : range.commonAncestorContainer;
+            if (commonCon === startCon && commonCon === endCon) {
+                startCon = commonCon.children[startOff];
+                endCon = commonCon.children[endOff];
+                startOff = endOff = 0;
+            }
 
             let beforeNode = null;
             let afterNode = null;
@@ -17636,7 +18130,8 @@ const _Context = function (element, cons, options) {
 
                 if (item === startCon) {
                     if (startCon.nodeType === 1) {
-                        beforeNode = util.createTextNode(startCon.textContent);
+                        if (util.isComponent(startCon)) continue;
+                        else beforeNode = util.createTextNode(startCon.textContent);
                     } else {
                         if (item === endCon) {
                             beforeNode = util.createTextNode(startCon.substringData(0, startOff) + endCon.substringData(endOff, (endCon.length - endOff)));
@@ -17658,7 +18153,8 @@ const _Context = function (element, cons, options) {
 
                 if (item === endCon) {
                     if (endCon.nodeType === 1) {
-                        afterNode = util.createTextNode(endCon.textContent);
+                        if (util.isComponent(endCon)) continue;
+                        else afterNode = util.createTextNode(endCon.textContent);
                     } else {
                         afterNode = util.createTextNode(endCon.substringData(endOff, (endCon.length - endOff)));
                     }
@@ -19890,7 +20386,6 @@ const _Context = function (element, cons, options) {
 
             for (let i = 0, len = rangeLines.length, f, margin; i < len; i++) {
                 f = rangeLines[i];
-
                 if (!util.isListCell(f) || !this.plugins.list) {
                     margin = /\d+/.test(f.style[marginDir]) ? util.getNumber(f.style[marginDir], 0) : 0;
                     if (shift) {
@@ -20173,7 +20668,7 @@ const _Context = function (element, cons, options) {
             const wDoc = this._wd;
 
             if (options.iframe) {
-                const arrts = options.fullPage ? util.getAttributesToString(wDoc.body, ['contenteditable']) : 'class="' + options._editableClass + '"';
+                const arrts = options._printClass !== null ? 'class="' + options._printClass + '"' : options.fullPage ? util.getAttributesToString(wDoc.body, ['contenteditable']) : 'class="' + options._editableClass + '"';
 
                 printDocument.write('' +
                     '<!DOCTYPE html><html>' +
@@ -20199,7 +20694,7 @@ const _Context = function (element, cons, options) {
                     '<head>' +
                     linkHTML +
                     '</head>' +
-                    '<body class="' + options._editableClass + '">' + contentsHTML + '</body>' +
+                    '<body class="' + (options._printClass !== null ? options._printClass : options._editableClass) + '">' + contentsHTML + '</body>' +
                     '</html>'
                 );
             }
@@ -20242,7 +20737,7 @@ const _Context = function (element, cons, options) {
             const wDoc = this._wd;
 
             if (options.iframe) {
-                const arrts = options.fullPage ? util.getAttributesToString(wDoc.body, ['contenteditable']) : 'class="' + options._editableClass + '"';
+                const arrts = options._printClass !== null ? 'class="' + options._printClass + '"' : options.fullPage ? util.getAttributesToString(wDoc.body, ['contenteditable']) : 'class="' + options._editableClass + '"';
 
                 windowObject.document.write('' +
                     '<!DOCTYPE html><html>' +
@@ -20272,7 +20767,7 @@ const _Context = function (element, cons, options) {
                     '<title>' + lang.toolbar.preview + '</title>' +
                     linkHTML +
                     '</head>' +
-                    '<body class="' + options._editableClass + '" style="margin:10px auto !important; height:auto !important; outline:1px dashed #ccc;">' + contentsHTML + '</body>' +
+                    '<body class="' + (options._printClass !== null ? options._printClass : options._editableClass) + '" style="margin:10px auto !important; height:auto !important; outline:1px dashed #ccc;">' + contentsHTML + '</body>' +
                     '</html>'
                 );
             }
@@ -20401,6 +20896,48 @@ const _Context = function (element, cons, options) {
         },
 
         /**
+         * @description Tag and tag attribute check RegExp function. (used by "cleanHTML" and "convertContentsForEditor")
+         * @param {Boolean} rowLevelCheck Row level check
+         * @param {String} m RegExp value
+         * @param {String} t RegExp value
+         * @returns {String}
+         * @private
+         */
+        _cleanTags: function (rowLevelCheck, m, t) {
+            if (/^<[a-z0-9]+\:[a-z0-9]+/i.test(m)) return m;
+
+            let v = null;
+            const tAttr = this._attributesTagsWhitelist[t.match(/(?!<)[a-zA-Z0-9]+/)[0].toLowerCase()];
+            if (tAttr) v = m.match(tAttr);
+            else v = m.match(this._attributesWhitelistRegExp);
+
+            if ((rowLevelCheck || /<span/i.test(t)) && (!v || !/style=/i.test(v.toString()))) {
+                const sv = m.match(/style\s*=\s*"[^"]*"/);
+                if (sv) {
+                    if (!v) v = [];
+                    v.push(sv[0]);
+                }
+            }
+
+            if (/<a\b/i.test(t)) {
+                const sv = m.match(/id\s*=\s*"[^"]*"/);
+                if (sv) {
+                    if (!v) v = [];
+                    v.push(sv[0]);
+                }
+            }
+
+            if (v) {
+                for (let i = 0, len = v.length; i < len; i++) {
+                    if (rowLevelCheck && /^class="(?!(__se__|se-|katex))/.test(v[i])) continue;
+                    t += ' ' + (/^href\s*=\s*('|"|\s)*javascript\s*\:/.test(v[i]) ? '' : v[i]);
+                }
+            }
+
+            return t;
+        },
+
+        /**
          * @description Gets the clean HTML code for editor
          * @param {String} html HTML string
          * @param {String|RegExp|null} whitelist Regular expression of allowed tags.
@@ -20408,46 +20945,11 @@ const _Context = function (element, cons, options) {
          * @returns {String}
          */
         cleanHTML: function (html, whitelist) {
-            html = this._deleteDisallowedTags(html)
-                .replace(/(<[a-zA-Z0-9]+)[^>]*(?=>)/g, function (m, t) {
-                    if (/^<[a-z0-9]+\:[a-z0-9]+/i.test(m)) return m;
-
-                    let v = null;
-                    const tAttr = this._attributesTagsWhitelist[t.match(/(?!<)[a-zA-Z0-9]+/)[0].toLowerCase()];
-                    if (tAttr) v = m.match(tAttr);
-                    else v = m.match(this._attributesWhitelistRegExp);
-
-                    if (/<span/i.test(t) && (!v || !/style=/i.test(v.toString()))) {
-                    // @v3
-                    // if (!v || !/style=/i.test(v.toString())) {
-                        const sv = m.match(/style\s*=\s*"[^"]*"/);
-                        if (sv) {
-                            if (!v) v = [];
-                            v.push(sv[0]);
-                        }
-                    }
-
-                    if (/<a\b/i.test(t)) {
-                        const sv = m.match(/id\s*=\s*"[^"]*"/);
-                        if (sv) {
-                            if (!v) v = [];
-                            v.push(sv[0]);
-                        }
-                    }
-
-                    if (v) {
-                        for (let i = 0, len = v.length; i < len; i++) {
-                            if (/^class="(?!(__se__|se-|katex))/.test(v[i])) continue;
-                            t += ' ' + v[i];
-                        }
-                    }
-
-                    return t;
-                }.bind(this));
+            html = this._deleteDisallowedTags(html).replace(/(<[a-zA-Z0-9]+)[^>]*(?=>)/g, this._cleanTags.bind(this, false));
 
             const dom = _d.createRange().createContextualFragment(html);
             try {
-                util._consistencyCheckOfHTML(dom, this._htmlCheckWhitelistRegExp, options.allowStyles);
+                util._consistencyCheckOfHTML(dom, this._htmlCheckWhitelistRegExp);
             } catch (error) {
                 console.warn('[SUNEDITOR.cleanHTML.consistencyCheck.fail] ' + error);
             }
@@ -20492,46 +20994,12 @@ const _Context = function (element, cons, options) {
          * @returns {String}
          */
         convertContentsForEditor: function (contents) {
-            contents = this._deleteDisallowedTags(contents)
-                .replace(/(<[a-zA-Z0-9]+)[^>]*(?=>)/g, function (m, t) {
-                    if (/^<[a-z0-9]+\:[a-z0-9]+/i.test(m)) return m;
-
-                    let v = null;
-                    const tAttr = this._attributesTagsWhitelist[t.match(/(?!<)[a-zA-Z0-9]+/)[0].toLowerCase()];
-                    if (tAttr) v = m.match(tAttr);
-                    else v = m.match(this._attributesWhitelistRegExp);
-
-                    if (/<span/i.test(t) && (!v || !/style=/i.test(v.toString()))) {
-                    // @v3
-                    // if (!v || !/style=/i.test(v.toString())) {
-                        const sv = m.match(/style\s*=\s*"[^"]*"/);
-                        if (sv) {
-                            if (!v) v = [];
-                            v.push(sv[0]);
-                        }
-                    }
-
-                    if (/<a\b/i.test(t)) {
-                        const sv = m.match(/id\s*=\s*"[^"]*"/);
-                        if (sv) {
-                            if (!v) v = [];
-                            v.push(sv[0]);
-                        }
-                    }
-
-                    if (v) {
-                        for (let i = 0, len = v.length; i < len; i++) {
-                            t += ' ' + v[i];
-                        }
-                    }
-
-                    return t;
-                }.bind(this));
+            contents = this._deleteDisallowedTags(contents).replace(/(<[a-zA-Z0-9]+)[^>]*(?=>)/g, this._cleanTags.bind(this, true));
 
             const dom = _d.createRange().createContextualFragment(this._deleteDisallowedTags(contents));
 
             try {
-                util._consistencyCheckOfHTML(dom, this._htmlCheckWhitelistRegExp, options.allowStyles);
+                util._consistencyCheckOfHTML(dom, this._htmlCheckWhitelistRegExp);
             } catch (error) {
                 console.warn('[SUNEDITOR.convertContentsForEditor.consistencyCheck.fail] ' + error);
             }
@@ -20691,7 +21159,7 @@ const _Context = function (element, cons, options) {
         checkCharCount: function (element, charCounterType) {
             if (options.maxCharCount) {
                 const countType = charCounterType || options.charCounterType;
-                const length = this.getCharLength((typeof element === 'string' ? element : this._charTypeHTML ? element.outerHTML : element.textContent), countType);
+                const length = this.getCharLength((typeof element === 'string' ? element : (this._charTypeHTML && element.nodeType === 1) ? element.outerHTML : element.textContent), countType);
                 if (length > 0 && length + functions.getCharCount(countType) > options.maxCharCount) {
                     this._callCounterBlink();
                     return false;
@@ -20800,6 +21268,7 @@ const _Context = function (element, cons, options) {
                     }
                     child = child.parentNode;
                 }
+                if (this._shadowRoot) this._shadowRootControllerEventTarget = [];
             }
 
             // set disallow text nodes
@@ -20811,7 +21280,7 @@ const _Context = function (element, cons, options) {
             this._disallowedTextTagsRegExp = disallowTextTags.length === 0 ? null : new wRegExp('(<\\/?)(' + disallowTextTags.join('|') + ')\\b\\s*(?:[^>^<]+)?\\s*(?=>)', 'gi');
 
             // set whitelist
-            const defaultAttr = 'contenteditable|colspan|rowspan|target|href|download|rel|src|alt|class|type|controls|data-format|data-size|data-file-size|data-file-name|data-origin|data-align|data-image-link|data-rotate|data-proportion|data-percentage|origin-size|data-exp|data-font-size';
+            const defaultAttr = 'contenteditable|id|colspan|rowspan|target|href|download|rel|src|alt|class|type|controls|data-format|data-size|data-file-size|data-file-name|data-origin|data-align|data-image-link|data-rotate|data-proportion|data-percentage|origin-size|data-exp|data-font-size';
             this._allowHTMLComments = options._editorTagsWhitelist.indexOf('//') > -1;
             this._htmlCheckWhitelistRegExp = new wRegExp('^(' + options._editorTagsWhitelist.replace('|//', '') + ')$', 'i');
             this.editorTagsWhitelistRegExp = util.createTagsWhitelist(options._editorTagsWhitelist.replace('|//', '|<!--|-->'));
@@ -20967,6 +21436,7 @@ const _Context = function (element, cons, options) {
             core._variable.isChanged = true;
             if (context.tool.save) context.tool.save.removeAttribute('disabled');
             if (functions.onChange) functions.onChange(this.getContents(true), this);
+            if (context.element.toolbar.style.display === 'block') event._showToolbarBalloon();
         },
 
         /**
@@ -21015,7 +21485,7 @@ const _Context = function (element, cons, options) {
 
             const fileComponent = util.getParentElement(commonCon, util.isComponent);
             if (fileComponent && !util.isTable(fileComponent)) return;
-            if((util.isRangeFormatElement(startCon) || util.isWysiwygDiv(startCon)) && util.isComponent(startCon.childNodes[range.startOffset])) return;
+            if((util.isRangeFormatElement(startCon) || util.isWysiwygDiv(startCon)) && (util.isComponent(startCon.children[range.startOffset]) || util.isComponent(startCon.children[range.startOffset - 1]))) return;
 
             if (rangeEl) {
                 format = util.createElement(formatName || options.defaultTag);
@@ -21275,9 +21745,13 @@ const _Context = function (element, cons, options) {
                     }
 
                     /* Indent */
-                    if (commandMapNodes.indexOf('INDENT') === -1 && commandMap.INDENT && util.isListCell(element) && !element.previousElementSibling) {
+                    if (commandMapNodes.indexOf('INDENT') === -1 && commandMap.INDENT) {
                         commandMapNodes.push('INDENT');
-                        commandMap.INDENT.setAttribute('disabled', true);
+                        if (util.isListCell(element) && !element.previousElementSibling) {
+                            commandMap.INDENT.setAttribute('disabled', true);
+                        } else {
+                            commandMap.INDENT.removeAttribute('disabled');
+                        }
                     }
 
                     continue;
@@ -21490,14 +21964,9 @@ const _Context = function (element, cons, options) {
             let rects = range.getClientRects();
             rects = rects[isDirTop ? 0 : rects.length - 1];
 
-            let scrollLeft = 0;
-            let scrollTop = 0;
-            let el = topArea;
-            while (!!el) {
-                scrollLeft += el.scrollLeft;
-                scrollTop += el.scrollTop;
-                el = el.parentElement;
-            }
+            const globalScroll = core.getGlobalScrollOffset();
+            let scrollLeft = globalScroll.left;
+            let scrollTop = globalScroll.top;
 
             const editorWidth = topArea.offsetWidth;
             const offsets = event._getEditorOffsets(null);
@@ -22464,10 +22933,16 @@ const _Context = function (element, cons, options) {
 
             const responsiveSize = event._responsiveButtonSize;
             if (responsiveSize) {
-                const windowWidth = context.element.toolbar.offsetWidth;
+                let w = 0;
+                if ((core._isBalloon || core._isInline) && options.toolbarWidth === 'auto') {
+                    w = context.element.topArea.offsetWidth;
+                } else {
+                    w = context.element.toolbar.offsetWidth;
+                }
+
                 let responsiveWidth = 'default';
                 for (let i = 1, len = responsiveSize.length; i < len; i++) {
-                    if (windowWidth < responsiveSize[i]) {
+                    if (w < responsiveSize[i]) {
                         responsiveWidth = responsiveSize[i] + '';
                         break;
                     }
@@ -23802,26 +24277,26 @@ var getPlugins = function getPlugins(_ref) {
   if (!isArray(buttonList)) throw new Error("Button List must be of type array");else {
     var pluginList = [];
     buttonList = flatten(buttonList);
-    if (buttonList.indexOf("align") >= 0) pluginList.push(__webpack_require__(10).default);
-    if (buttonList.indexOf("math") >= 0) pluginList.push(__webpack_require__(11).default);
-    if (buttonList.indexOf("imageGallery") >= 0) pluginList.push(__webpack_require__(12).default);
-    if (buttonList.indexOf("blockquote") >= 0) pluginList.push(__webpack_require__(13).default);
-    if (buttonList.indexOf("font") >= 0) pluginList.push(__webpack_require__(14).default);
-    if (buttonList.indexOf("fontColor") >= 0) pluginList.push(__webpack_require__(15).default);
-    if (buttonList.indexOf("fontSize") >= 0) pluginList.push(__webpack_require__(16).default);
-    if (buttonList.indexOf("formatBlock") >= 0) pluginList.push(__webpack_require__(17).default);
-    if (buttonList.indexOf("hiliteColor") >= 0) pluginList.push(__webpack_require__(18).default);
-    if (buttonList.indexOf("horizontalRule") >= 0) pluginList.push(__webpack_require__(19).default);
-    if (buttonList.indexOf("lineHeight") >= 0) pluginList.push(__webpack_require__(20).default);
-    if (buttonList.indexOf("list") >= 0) pluginList.push(__webpack_require__(21).default);
-    if (buttonList.indexOf("paragraphStyle") >= 0) pluginList.push(__webpack_require__(22).default);
-    if (buttonList.indexOf("table") >= 0) pluginList.push(__webpack_require__(23).default);
-    if (buttonList.indexOf("template") >= 0) pluginList.push(__webpack_require__(24).default);
-    if (buttonList.indexOf("textStyle") >= 0) pluginList.push(__webpack_require__(25).default);
-    if (buttonList.indexOf("image") >= 0) pluginList.push(__webpack_require__(26).default);
-    if (buttonList.indexOf("link") >= 0) pluginList.push(__webpack_require__(27).default);
-    if (buttonList.indexOf("video") >= 0) pluginList.push(__webpack_require__(28).default);
-    if (buttonList.indexOf("audio") >= 0) pluginList.push(__webpack_require__(29).default);
+    if (buttonList.indexOf("align") >= 0) pluginList.push(__webpack_require__(11).default);
+    if (buttonList.indexOf("math") >= 0) pluginList.push(__webpack_require__(12).default);
+    if (buttonList.indexOf("imageGallery") >= 0) pluginList.push(__webpack_require__(13).default);
+    if (buttonList.indexOf("blockquote") >= 0) pluginList.push(__webpack_require__(14).default);
+    if (buttonList.indexOf("font") >= 0) pluginList.push(__webpack_require__(15).default);
+    if (buttonList.indexOf("fontColor") >= 0) pluginList.push(__webpack_require__(16).default);
+    if (buttonList.indexOf("fontSize") >= 0) pluginList.push(__webpack_require__(17).default);
+    if (buttonList.indexOf("formatBlock") >= 0) pluginList.push(__webpack_require__(18).default);
+    if (buttonList.indexOf("hiliteColor") >= 0) pluginList.push(__webpack_require__(19).default);
+    if (buttonList.indexOf("horizontalRule") >= 0) pluginList.push(__webpack_require__(20).default);
+    if (buttonList.indexOf("lineHeight") >= 0) pluginList.push(__webpack_require__(21).default);
+    if (buttonList.indexOf("list") >= 0) pluginList.push(__webpack_require__(22).default);
+    if (buttonList.indexOf("paragraphStyle") >= 0) pluginList.push(__webpack_require__(23).default);
+    if (buttonList.indexOf("table") >= 0) pluginList.push(__webpack_require__(24).default);
+    if (buttonList.indexOf("template") >= 0) pluginList.push(__webpack_require__(25).default);
+    if (buttonList.indexOf("textStyle") >= 0) pluginList.push(__webpack_require__(26).default);
+    if (buttonList.indexOf("image") >= 0) pluginList.push(__webpack_require__(27).default);
+    if (buttonList.indexOf("link") >= 0) pluginList.push(__webpack_require__(28).default);
+    if (buttonList.indexOf("video") >= 0) pluginList.push(__webpack_require__(29).default);
+    if (buttonList.indexOf("audio") >= 0) pluginList.push(__webpack_require__(30).default);
     return [].concat(pluginList, _toConsumableArray(plugins || customPlugins || []));
   }
 };
@@ -23857,31 +24332,31 @@ var getLanguage = function getLanguage(lang) {
           return __webpack_require__(4);
 
         case 'da':
-          return __webpack_require__(30);
-
-        case 'de':
           return __webpack_require__(31);
 
-        case 'es':
+        case 'de':
           return __webpack_require__(32);
 
-        case 'fr':
+        case 'es':
           return __webpack_require__(33);
 
-        case 'ja':
+        case 'fr':
           return __webpack_require__(34);
 
-        case 'ko':
+        case 'ja':
           return __webpack_require__(35);
 
-        case 'pt_br':
+        case 'ko':
           return __webpack_require__(36);
 
-        case 'ru':
+        case 'pt_br':
           return __webpack_require__(37);
 
-        case 'it':
+        case 'ru':
           return __webpack_require__(38);
+
+        case 'it':
+          return __webpack_require__(9);
 
         case 'zh_cn':
           return __webpack_require__(39);
@@ -23904,6 +24379,12 @@ var getLanguage = function getLanguage(lang) {
         case 'ua':
           return __webpack_require__(45);
 
+        case 'he':
+          return __webpack_require__(46);
+
+        case 'it':
+          return __webpack_require__(9);
+
         default:
           return __webpack_require__(4);
       }
@@ -23920,6 +24401,12 @@ var prop_types_default = /*#__PURE__*/__webpack_require__.n(prop_types);
 
 // CONCATENATED MODULE: ./SunEditor.js
 function _extends() { _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -23981,9 +24468,9 @@ var SunEditor_SunEditor = /*#__PURE__*/function (_Component) {
       setOptions.width = setOptions.width || width;
       if (height) setOptions.height = height;
       if (name && defaultValue) this.txtArea.current.value = defaultValue;
-      this.editor = suneditor.create(this.txtArea.current, {
+      this.editor = suneditor.create(this.txtArea.current, _objectSpread({
         value: defaultValue
-      });
+      }, setOptions));
       var _this$props2 = this.props,
           insertHTML = _this$props2.insertHTML,
           setContents = _this$props2.setContents,
@@ -24095,7 +24582,6 @@ var SunEditor_SunEditor = /*#__PURE__*/function (_Component) {
         return onAudioUploadError(errorMessage, result);
       };
       if (placeholder) setOptions.placeholder = placeholder;
-      this.editor.setOptions(setOptions);
 
       this.editor.onload = function (_, reload) {
         if (reload === false) {
